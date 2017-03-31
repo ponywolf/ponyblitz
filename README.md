@@ -3,7 +3,7 @@ A light weight Corona+Lua skeleton for game jams/compos
 
 This is a lightweight skeleton that is intended to make it a bit easier to get a game jam entry up and going with CoronaSDK. It has a simple text based menu scene, a game scene where you can choose from a simple "world" organization of displayObjects or easily load in a tiled .JSON map as your world.
 
-[img](http://i.imgur.com/leBoVNv.gifv)
+![Screenshot](http://i.imgur.com/leBoVNv.gifv)
 
 It also includes a pre-made HUD layer for score and a few open source libraries that have been released in varous places by ponywolf.
 
