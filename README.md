@@ -5,7 +5,7 @@ This is a lightweight skeleton that is intended to make it a bit easier to get a
 
 ![Screenshot](http://i.imgur.com/leBoVNv.gif)
 
-It also includes a pre-made HUD layer for score and a few open source libraries that have been released in varous places by ponywolf.
+It also includes a pre-made HUD layer for score and a few open source libraries that have been released in various places by ponywolf.
 
 * joyKey - axis to keystroke
 * pex - particle loader
