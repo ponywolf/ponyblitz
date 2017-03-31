@@ -1,0 +1,97 @@
+--    ____                                   ______
+--   / __ \____  ____  __  ___      ______  / / __/
+--  / /_/ / __ \/ __ \/ / / / | /| / / __ \/ / /_
+-- / ____/ /_/ / / / / /_/ /| |/ |/ / /_/ / / __/
+--/_/    \____/_/ /_/\__, / |__/|__/\____/_/_/
+--                  /____/
+
+-- Commented build.settings by Ponywolf
+-- Targeting desktop builds
+
+settings = {
+
+--  The build.settings file can be used to set app orientation in relation to the
+--  device's physical orientation in space — this includes auto-orientation triggered
+--  by the accelerometer if the device is rotated or flipped during runtime.
+
+--  "portrait" device in the vertical position with the home button at the bottom
+--  "portraitUpsideDown" device in the vertical position with the home button at the top
+--  "landscapeRight" device in the horizontal position with the home button at the right
+--  "landscapeLeft" device in the horizontal position with the home button at the left
+
+	orientation = {
+		-- Landscape
+    default = "landscapeRight",
+		supported = { "landscapeRight", "landscapeLeft"}
+  },
+
+  --  This setting can be used to turned on to disable debug symbol stripping altogether
+  build = {
+    --neverStripDebugInfo = true
+  },
+
+	window = {
+		titleText = {
+			-- The "default" text will be used if the system is using a language and/or
+			-- country code not defined below. This serves as a fallback mechanism.
+			default = "CoronaBlitz",
+		},
+	},
+
+	iphone =
+	{
+		plist =
+		{
+			-- Icon image files table
+			CFBundleIconFiles = {
+				"icons/Icon.png",
+				"icons/Icon@2x.png",
+				"icons/Icon-60.png",
+				"icons/Icon-60@2x.png",
+				"icons/Icon-60@3x.png",
+				"icons/Icon-72.png",
+				"icons/Icon-72@2x.png",
+				"icons/Icon-76.png",
+				"icons/Icon-76@2x.png",
+				"icons/Icon-167.png",
+				"icons/Icon-Small-40.png",
+				"icons/Icon-Small-40@2x.png",
+				"icons/Icon-Small-50.png",
+				"icons/Icon-Small-50@2x.png",
+				"icons/Icon-Small.png",
+				"icons/Icon-Small@2x.png",
+				"icons/Icon-Small@3x.png"
+			},
+      NSPhotoLibraryUsageDescription = "Unused",
+      NSCameraUsageDescription = "Unused",
+      UILaunchImages = {
+        {  -- iPad LandscapeRight
+          ["UILaunchImageMinimumOSVersion"] = "7.0",
+          ["UILaunchImageName"] = "Default",
+          ["UILaunchImageOrientation"] = "Landscape",
+          ["UILaunchImageSize"] = "{768, 1024}"
+        },
+      },
+    }
+  },			
+
+  plugins =
+  {
+--    ["plugin.utf8"] =
+--    {
+--      publisherId = "com.coronalabs",
+--    },
+  },
+
+  --  Files to be excluded are specified per platform (iphone, android or all) using simple pattern
+  --  matching where * means any string of characters, sometimes including /
+  excludeFiles = {
+
+  -- Exclude all files at paths
+    all = { },
+    android = { },
+		win32 = { "Default*.png" },
+		osx = { "Default*.png" },
+  },
+  
+}
