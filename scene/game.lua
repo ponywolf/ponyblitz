@@ -21,7 +21,8 @@ function scene:create( event )
   view:insert(world)
   
   -- or load a tiled map
-  local data = json.decodeFile("scene/game/map/test.json")
+  local filename = system.pathForFile("scene/game/map/test.json")
+  local data = json.decodeFile(filename)
   map = ponytiled.new(data)
   map:centerObject("testobject")
 
