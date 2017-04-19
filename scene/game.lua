@@ -16,17 +16,23 @@ function scene:create( event )
   self.sounds = require "scene.game.sounds"
   
   -- create an empty world
---  world = libworld.new()
---  world:center()
---  view:insert(world)
+  world = libworld.new(4)
+  world:center()
+  view:insert(world)
+	
+	local rect = display.newRect(world , 0, 0, 128, 128)
+	transition.to(rect, { time = 5000, rotation = -360, iterations = -1 })
+	
+  local circle = display.newCircle(world, -250, 0, 64)
+	transition.to(circle, { time = 5000, x=250, iterations = -1, transition = easing.inOutQuad })
   
   -- or load a tiled map
-  local filename = system.pathForFile("scene/game/map/test.json")
-  local data = json.decodeFile(filename)
-  map = ponytiled.new(data)
-  map:centerObject("testobject")
-	view:insert(map)
-
+--  local filename = system.pathForFile("scene/game/map/test.json")
+--  local data = json.decodeFile(filename)
+--  map = ponytiled.new(data, "scene/game/map")
+--  map:centerObject("testobject")
+--	view:insert(map)
+	
   -- create an HUD group
   hud = display.newGroup()
 	scene.score = display.newText{ text = "HUD GROUP", font = "scene/game/font/RobotoMono.ttf", fontSize = "32" }

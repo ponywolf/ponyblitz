@@ -26,6 +26,8 @@ end
 
 -- reserve audio for menu and bgsound
 audio.reserveChannels(2)
+audio.defaultVolume = 0.5	
+audio.volume = audio.defaultVolume
 
 -- are we running on a simulator?
 local isSimulator = "simulator" == system.getInfo( "environment" )
@@ -53,7 +55,10 @@ if isSimulator then
           physics.setDrawMode( "normal" )  
         end
       elseif key == "f" then
-        visMon.isVisible = not visMon.isVisible 
+        visMon.isVisible = not visMon.isVisible
+      elseif key == "m" then
+        audio.volume = (audio.volume or audio.defaultVolume) > 0 and 0 or audio.defaultVolume
+        audio.setVolume(audio.volume)          
       end
     end
   end

@@ -21,9 +21,11 @@ function scene:create( event )
 			if name == "play" then
 				composer.gotoScene("scene.game")
 			elseif name == "soundon" then
-
+				audio.volume = audio.defaultVolume
+				audio.setVolume(audio.volume)  
 			elseif name == "soundoff" then
-
+				audio.volume = 0
+				audio.setVolume(audio.volume)  
 			elseif name == "quit" then
 				native.requestExit()
 			end
