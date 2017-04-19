@@ -16,15 +16,16 @@ function scene:create( event )
   self.sounds = require "scene.game.sounds"
   
   -- create an empty world
-  world = libworld.new()
-  world:center()
-  view:insert(world)
+--  world = libworld.new()
+--  world:center()
+--  view:insert(world)
   
   -- or load a tiled map
   local filename = system.pathForFile("scene/game/map/test.json")
   local data = json.decodeFile(filename)
   map = ponytiled.new(data)
   map:centerObject("testobject")
+	view:insert(map)
 
   -- create an HUD group
   hud = display.newGroup()
