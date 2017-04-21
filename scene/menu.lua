@@ -33,10 +33,10 @@ function scene:create( event )
 	end
 
 	-- create a start menu
-	menu = ponymenu.new(onMenu, { align = "center", fontSize = 32, font = "scene/menu/font/RobotoMono.ttf" })
-	menu:add("PLAY")
-	menu:add("SOUND OFF,SOUND ON")
-	menu:add("QUIT")
+	menu = ponymenu.new(onMenu, { align = "center", font = "scene/menu/font/RobotoMono.ttf", fontSize = 32 })
+	menu:add("Play")
+	menu:add("Sound Off,Sound On")
+	menu:add("Quit")
 
 	view:insert(menu)
 	snap(menu)

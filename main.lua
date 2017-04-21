@@ -62,13 +62,18 @@ if isSimulator then
       end
     end
   end
-  Runtime:addEventListener( "key", key )
+  Runtime:addEventListener( "key", key ) 
 end
 
 -- this module turns gamepad axis events into keyboard
 -- events so we don't have to write separate code 
 -- for joystick and keyboard control
 require("com.ponywolf.joykey").start()
+
+local scanlines = require "scene.game.lib.scanlines"
+local stage = display.getCurrentStage()
+stage:insert(composer.stage)
+--stage:insert(scanlines.new())
 
 -- go to menu screen
 composer.gotoScene( "scene.menu", { params={ } } )

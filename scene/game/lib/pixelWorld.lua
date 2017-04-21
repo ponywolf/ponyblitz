@@ -1,4 +1,4 @@
--- camera control
+-- pixel version of world
 
 local M = {}
 
@@ -31,9 +31,12 @@ function M.new(pixelScale)
   end
 
   local function enterFrame(event)
+--    for i = instance.group.numChildren, 1, -1 do
+--      instance.group[i].x, instance.group[i].y = math.floor(instance.group[i].x), math.floor(instance.group[i].y)
+--    end
     instance:invalidate()
     instance.fill.effect = "filter.pixelate"
-    instance.fill.effect.numPixels = pixelScale
+    instance.fill.effect.numPixels = math.floor(pixelScale)
   end
 
   function instance:finalize()

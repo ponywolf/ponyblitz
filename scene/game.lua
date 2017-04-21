@@ -12,15 +12,19 @@ local world, hud, map
 function scene:create( event )
   local view = self.view -- add display objects to this group
   
+	display.setDefault("background", 0.2,0.2,0.2)
+	
   -- load sounds
   self.sounds = require "scene.game.sounds"
   
   -- create an empty world
-  world = libworld.new(4)
+  world = libworld.new(2)
   world:center()
   view:insert(world)
 	
 	local rect = display.newRect(world , 0, 0, 128, 128)
+	rect.strokeWidth = 8
+	rect:setFillColor(0,0,0,0)
 	transition.to(rect, { time = 5000, rotation = -360, iterations = -1 })
 	
   local circle = display.newCircle(world, -250, 0, 64)
@@ -35,7 +39,7 @@ function scene:create( event )
 	
   -- create an HUD group
   hud = display.newGroup()
-	scene.score = display.newText{ text = "HUD GROUP", font = "scene/game/font/RobotoMono.ttf", fontSize = "32" }
+	scene.score = display.newText{ parent=hud, text = "HUD Group", font = "scene/game/font/RobotoMono.ttf", fontSize = "32" }
   snap(scene.score, "topcenter", 16)
 	view:insert(hud)
 
