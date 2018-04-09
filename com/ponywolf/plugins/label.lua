@@ -25,7 +25,7 @@ function M.new(instance)
   -- set defaults
   local text = tiledObj.text or " "
   local font = tiledObj.font or native.systemFont
-  local size = tonumber(tiledObj.size or "20")
+  local size = tiledObj.size or 20
   local stroked = tiledObj.stroked
   local sr,sg,sb,sa = decodeTiledColor(tiledObj.strokeColor or "000000CC")
   local align = tiledObj.align or "center"
@@ -41,10 +41,11 @@ function M.new(instance)
       shadow = { r=sr, g=sg, b=sb, a=sa }
     }
     instance = display.newEmbossedText(params)
-    instance:setFillColor(decodeTiledColor(color))
+    instance:setTextColor(decodeTiledColor(color))
     instance:setEmbossColor(newStrokeColor)
   else
     instance = display.newText(params)
+    instance:setTextColor(decodeTiledColor(color))
   end
   
   -- push the rest of the properties
