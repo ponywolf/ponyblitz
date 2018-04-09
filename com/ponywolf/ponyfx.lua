@@ -220,7 +220,7 @@ function M.newTrail(object, options)
   local function enterFrame()
     frame = frame + 1
     if offScreen(object) then return end   
-    
+
     -- object destroyed
     if not object.contentBounds then
       trail:finalize()
@@ -308,7 +308,7 @@ function M.newFootprint(object, options)
 
   local function enterFrame()
     if offScreen(object) then return end   
-    
+
     -- object destroyed
     if not object.contentBounds then
       trail:finalize()
@@ -356,6 +356,41 @@ function M.newFootprint(object, options)
 
   trail:addEventListener( "finalize" )
   return trail
+end
+
+-- lightning
+
+function M.newBolt(x1, y1, x2, y2, options)
+  options = options or {}
+  x1, y1 = x1 or 0, y1 or 0
+  x2, y2 = x2 or 0, y2 or 0
+  local pixelsPerSeg = options.pixelsPerSeg or 32
+  local dx, dy = x2 - x1, y2 - y1
+  local dist = math.sqrt(dx*dx + dy*dy)
+  local steps = math.round(dist/pixelsPerSeg)
+  local parent = options.parent
+
+  dx, dy = dx/steps, dy/steps
+
+  -- line based
+  local rx, ry = math.random(pixelsPerSeg) - pixelsPerSeg/2, math.random(pixelsPerSeg) - pixelsPerSeg / 2  
+  local bolt = parent and display.newLine(parent,x1,y1,x1+dx+rx,y1+dy+ry) or display.newLine(x1,y1,x1+dx+rx,y1+dy+ry)
+  for i = 1, steps do
+    rx, ry = math.random(pixelsPerSeg) - pixelsPerSeg/2, math.random(pixelsPerSeg) - pixelsPerSeg / 2
+    --rx, ry = rx  *2, ry *2
+    bolt:append(x1 + dx*i + rx, y1 + dy*i + ry)
+  end
+  bolt:append(x2, y2)
+  bolt.strokeWidth = 8 + math.random(16)
+  local paint = {
+    type = "image",
+    filename = "com/ponywolf/ponyfx/bolt.png"
+  }
+  bolt.stroke = paint
+  
+  local remove = function() display.remove(bolt) end
+  transition.to(bolt, {alpha = 0, time = 166, onComplete = remove} )
+  return bolt
 end
 
 

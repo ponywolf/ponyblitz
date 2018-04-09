@@ -119,8 +119,8 @@ function M.new(listener, options)
     local phase = event.phase
     local name = event.name
 
-    -- we are a mouse?
-    if name == "mouse" then
+    -- we are a mouse, did we touch?
+    if name == "mouse" or phase == "began" then
       for i = 1, #self.items do
         if inBounds(event, self.items[i].object) then
           if i ~= self.selected then 
