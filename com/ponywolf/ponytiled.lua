@@ -3,6 +3,8 @@
 -- Loads LUA saved map files from Tiled http://www.mapeditor.org/
 
 local physics = require "physics"
+local xml = require("com.coronalabs.xml").newParser()
+local json = require "json"
 
 local M = {}
 local defaultExtensions = "com.ponywolf.plugins."
@@ -64,8 +66,9 @@ function M.new(data, dir)
 
   local function loadTileset(num)
     local tileset = tilesets[num]
+
     local tsiw, tsih = tileset.imagewidth, tileset.imageheight
-    local margin, spacing = tileset.margin, tileset.spacing
+    local margin, spacing = tileset.margin or 0, tileset.spacing or 0
     local w, h = tileset.tilewidth, tileset.tileheight
     local gid = 0
 
@@ -76,8 +79,8 @@ function M.new(data, dir)
     }
 
     local frames = options.frames
-    local tsh = math.ceil((tsih - margin*2 - spacing) / (h + spacing))
-    local tsw = math.ceil((tsiw - margin*2 - spacing) / (w + spacing))
+    local tsh = tileset.tilecount / tileset.columns 
+    local tsw = tileset.columns 
 
     for j=1, tsh do
       for i=1, tsw do
@@ -97,16 +100,16 @@ function M.new(data, dir)
 
   local function findLast(tileset)
     local last = tileset.firstgid
-    if tileset.tiles then 
-      for k,v in pairs(tileset.tiles) do
+    if tileset.image then
+      return tileset.firstgid + tileset.tilecount - 1
+    elseif tileset.tiles then 
+      for k,_ in pairs(tileset.tiles) do
         if tonumber(k) + tileset.firstgid > last then
           last = tonumber(k) + tileset.firstgid
         end
       end
       return last
-    elseif tileset.image then
-      return tileset.firstgid + tileset.tilecount
-    end
+    end  
   end
 
   local function gidLookup(gid)
@@ -122,6 +125,19 @@ function M.new(data, dir)
     for i = 1, #tilesets do
       local tileset = tilesets[i]
       local firstgid = tileset.firstgid
+      if tileset.source then 
+        print ("WARNING: External tilesets only suported for tilesheets...")
+        local externalSet = xml:loadFile(dir .. tileset.source)
+        tileset.image = externalSet.child[1].properties.source
+        tileset.width = externalSet.child[1].properties.width
+        tileset.height = externalSet.child[1].properties.height
+        tileset.tileheight = externalSet.properties.tileheight
+        tileset.tilewidth = externalSet.properties.tilewidth
+        tileset.columns = externalSet.properties.columns
+        tileset.name = externalSet.properties.name
+        tileset.tilecount = externalSet.properties.tilecount
+        tileset.source = nil -- no longer load the XML
+      end
       local lastgid = findLast(tileset)
       if gid >= firstgid and gid <= lastgid then
         if tileset.image then -- spritesheet
@@ -131,7 +147,7 @@ function M.new(data, dir)
           return gid - firstgid + 1, flip, sheets[i]
         else -- collection of images
           for k,v in pairs(tileset.tiles) do
-            if tonumber(k) == (gid - firstgid + 0 ) then
+            if tonumber(k) == (gid - firstgid + (data.luaversion and 1 or 0)) then
               return v.image, flip -- may need updating with documents directory
             end
           end
@@ -159,7 +175,7 @@ function M.new(data, dir)
             local image = sheet and display.newImage(objectGroup, sheet, gid, 0, 0) or display.newImage(objectGroup, gid, 0, 0)
             image.anchorX, image.anchorY = 0,1
             image.gid = tileNumber
-            image.x, image.y = (tx-1) * data.tilewidth, (ty+1) * data.tileheight
+            image.x, image.y = tx * data.tilewidth, (ty+1) * data.tileheight
             centerAnchor(image)
             -- flip it
             if flip.xy then
@@ -243,6 +259,26 @@ function M.new(data, dir)
           -- vector properties
           if polygon.fillColor then polygon:setFillColor(decodeTiledColor(polygon.fillColor)) end
           if polygon.strokeColor then polygon:setStrokeColor(decodeTiledColor(polygon.strokeColor)) end                       
+        elseif object.ellipse then -- circles
+          local circle = display.newCircle(objectGroup, 0, 0, (object.width + object.height) * 0.25)
+          circle.anchorX, circle.anchorY = 0, 0
+          circle.x, circle.y = object.x, object.y
+          circle.rotation = object.rotation
+          circle.isVisible = object.visible
+          centerAnchor(circle)
+          -- simple physics
+          if object.properties.bodyType then
+            physics.addBody(circle, object.properties.bodyType, object.properties)
+          end 
+          -- name and type
+          circle.name = object.name
+          circle.type = object.type              
+          -- apply custom properties
+          circle = inherit(circle, layer.properties)          
+          circle = inherit(circle, object.properties)          
+          -- vector properties          
+          if circle.fillColor then circle:setFillColor(decodeTiledColor(circle.fillColor)) end
+          if circle.strokeColor then circle:setStrokeColor(decodeTiledColor(circle.strokeColor)) end                
         else -- if all else fails make a simple rect
           local rect = display.newRect(objectGroup, 0, 0, object.width, object.height)
           rect.anchorX, rect.anchorY = 0, 0
@@ -339,6 +375,7 @@ function M.new(data, dir)
     if obj == nil then return false end
     obj = self:findObject(obj)
     
+
     -- easiest way to scroll a map based on a character
     -- find the difference between the hero and the display center
     -- and move the world to compensate
