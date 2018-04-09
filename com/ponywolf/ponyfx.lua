@@ -393,6 +393,7 @@ function M.newBolt(x1, y1, x2, y2, options)
 end
 
 
+
 -- Spinning streaks for menus and such
 
 function M.newStreak(options)
@@ -437,6 +438,45 @@ function M.newStreak(options)
   streaks:addEventListener("finalize")
   streaks:start()
   return streaks
+end
+
+function M.comic(text, x, y)
+  local stroke = require "com.ponywolf.ponystroke"
+  local default = {
+    text = text or "Critical Hit!",
+    x = x or display.contentCenterX,
+    y = y or 192,
+    --width = display.contentWidth * 0.8,
+    font = "com/ponywolf/ponyfx/Bangers-Regular.ttf",
+    fontSize = 99,
+    align = "center",
+    color = {0.9,0.4,0.35,1},
+    strokeColor = {1,1,1,1},
+    strokeWidth = 4
+  }
+  local comicText = stroke.newText(default)
+  comicText.rotation = math.random(12) - 6
+  comicText.xScale, comicText.yScale = 3.0, 3.0
+  
+  local function remove()
+    display.remove(comicText.raw)
+    comicText = nil
+  end
+  
+  transition.to(comicText, { 
+      xScale = 0.75, yScale = 0.75,
+      transition=easing.outElastic,
+      time=750,
+    })
+  
+  transition.to(comicText, { 
+      alpha = 0,
+      delay= 750,
+      time=333,
+      onComplete = remove,
+    })  
+  
+  return comicText.raw
 end
 
 return M

@@ -36,6 +36,7 @@ local function axis( event )
   local value = event.normalizedValue
   local oppositeAxis = "none"
 
+  event = event or {}
   event.name = "key" -- overide event type
 
   -- set map axis to key
