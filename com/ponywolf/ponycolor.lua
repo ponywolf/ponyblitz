@@ -42,4 +42,38 @@ function M.hls2rgb(h, l, s, a)
   return hue2rgb(p, q, h + third), hue2rgb(p, q, h), hue2rgb(p, q, h - third), a or 1
 end
 
+M.db32 = { black = "#000000",
+  midnight = "#222034",
+  loulou = "$4C3347",
+  voodoo = "#45283c",
+  copper = "#663931",
+  rope = "#8f563b",
+  tahiti = "#df7126",
+  porsche = "#d9a066",
+  tan = "#eec39a",
+  gorse = "#fbf236",
+  conifer = "#99e550",
+  apple = "#6abe30",
+  eucalyptus = "#37946e",
+  grass = "#4b692f",
+  olive = "#524b24",
+  graphite = "#323c39",
+  purple = "#3f3f74",
+  matisse ="#306082",
+  royal = "#5b6ee1",
+  sky ="#639bff",
+  turquoise = "#5fcde4",
+  azure = "#cbdbfc",
+  white = "#ffffff",
+  nepal = "#9badb7",
+  topaz = "#847e87",
+  nevada = "#696a6a",
+  masala = "#595652",
+  affair = "#76428a",
+  burnt = "#ac3232",
+  salmon = "#d95763",
+  persia = "#d77bba",
+  wasabi = "#8f974a",
+  harvest = "#8a6f30" }
+
 return M

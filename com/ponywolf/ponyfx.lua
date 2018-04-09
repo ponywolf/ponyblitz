@@ -126,7 +126,7 @@ end
 
 -- Breath fx function
 
-function M.breath(object, intensity, time, random)
+function M.breath(object, intensity, time, rnd)
   if not object.contentBounds then
     print("WARNING: Object not found")
     return false
@@ -134,15 +134,14 @@ function M.breath(object, intensity, time, random)
 
   intensity = 1 - (intensity or 0.05)
   time = time or 250
-  random = random or 0
-  time = time + math.floor(math.random(time) * (2*random) - math.random(time) * random)
+  time = time + (rnd and math.random(rnd) or 0)
   local w,h,i,e = object.width, object.height, {}, {}
   local function inhale() transition.to(object, i) end
   local function exhale() transition.to(object, e) end
 
   -- set transitions
-  i = { time = time, width = w * intensity, height = h / intensity, transtion = easing.inOutQuad, onComplete = exhale }
-  e = { time = time, width = w / intensity, height = h * intensity, transtion = easing.inOutQuad, onComplete = inhale }
+  i = { time = time, width = w * intensity, height = h / intensity, transtion = easing.inOutExpo, onComplete = exhale }
+  e = { time = time, width = w / intensity, height = h * intensity, transtion = easing.inOutExpo, onComplete = inhale }
 
   inhale()
 end
@@ -220,7 +219,7 @@ function M.newTrail(object, options)
   local function enterFrame()
     frame = frame + 1
     if offScreen(object) then return end   
-
+    
     -- object destroyed
     if not object.contentBounds then
       trail:finalize()
@@ -308,7 +307,7 @@ function M.newFootprint(object, options)
 
   local function enterFrame()
     if offScreen(object) then return end   
-
+    
     -- object destroyed
     if not object.contentBounds then
       trail:finalize()
