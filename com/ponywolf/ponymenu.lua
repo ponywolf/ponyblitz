@@ -1,4 +1,4 @@
--- com.ponywolf.ponymenu
+-- com.ponywolf.textMenu
 
 -- Simple text UI that can respond to key
 -- events for desktop/joystick games
@@ -30,14 +30,12 @@ local function inBounds(event, object)
   return false
 end
 
-function M.new(listener, options)
+function M.new(options, listener)
 
-  -- set your text options here
-  local default = options or { align = "center", fontSize = 42 }
-  listener = listener or function(...) end
+  options = options or {}
 
   local instance = display.newGroup()
-  instance.anchorChildren = true
+  --instance.anchorChildren = true
   instance.items = {}
   instance.selected = 1
 
@@ -48,7 +46,8 @@ function M.new(listener, options)
     local index = #items + 1
     local toggles = split(text)
     items[index] = { name = name, text = toggles[1], toggles = toggles, selected = 1 }
-    self:refresh()
+    self:refresh() 
+    self:update()
     return index
   end
 
@@ -58,23 +57,26 @@ function M.new(listener, options)
       display.remove(self[i])
     end
 
+    -- set your text options here
+    local default = options.text or { align = "center", fontSize = 42 }
+
     for i = 1, #items do
       default.text = items[i].text
       items[i].object = display.newText(default)
       items[i].object:translate(0, (i > 1) and items[i-1].object.contentHeight * (i-1) or 0)
       instance:insert(items[i].object)
     end
-    self:update(1)
   end
 
   function instance:update(index)
     local items = self.items
-    index = index or 1
+    index = index or self.selected
     index = math.min(math.max(index,1),#items)
+    self.selected = index
 
-    -- change these to hightlight your menu
-    local selected = { time = 0, xScale = 1.075, yScale = 1.075, alpha = 1 }
-    local normal = { time = 0, xScale = 1, yScale = 1, alpha = 0.7 }
+    -- refresh these to hightlight your menu
+    local selected = options.selected or { time = 250, xScale = 1.075, yScale = 1.075, alpha = 1, transition = easing.outQuad }
+    local normal = options.normal or { time = 350, xScale = 1, yScale = 1, alpha = 0.7, transition = easing.outElastic  }
 
     for i = 1, #items do
       local item = items[i].object
@@ -84,23 +86,17 @@ function M.new(listener, options)
         transition.to(item, normal)
       end
     end
-
-    -- yes update
-    self.selected = index    
-    return index
   end
 
   function instance:up()
     self:update(self.selected - 1)
-    listener( { phase = "moved" } )
   end
 
   function instance:down()
     self:update(self.selected + 1)
-    listener( { phase = "moved" } )
   end
 
-  function instance:choose(item)  
+  function instance:select(item)  
     local selectedItem = item or self.items[self.selected]
     if #selectedItem.toggles > 1 then
       local newSelected = (selectedItem.selected or 1) + 1
@@ -118,14 +114,12 @@ function M.new(listener, options)
   function instance:touch(event)
     local phase = event.phase
     local name = event.name
-
-    -- we are a mouse, did we touch?
-    if name == "mouse" or phase == "began" then
+    
+    -- we are a mouse?
+    if name == "mouse" then
       for i = 1, #self.items do
         if inBounds(event, self.items[i].object) then
-          if i ~= self.selected then 
-            self:update(i)
-          end
+          self:update(i)
         end
       end
     end
@@ -148,7 +142,7 @@ function M.new(listener, options)
       elseif name == "down" then
         instance:down()      
       elseif name == "enter" or name == "space" then
-        local item = instance:choose() 
+        local item = instance:select() 
         if listener then
           listener( { phase = "selected", name = item } )
         else
