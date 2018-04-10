@@ -1,4 +1,4 @@
--- com.ponywolf.textMenu
+-- com.ponywolf.ponymenu
 
 -- Simple text UI that can respond to key
 -- events for desktop/joystick games
@@ -30,12 +30,14 @@ local function inBounds(event, object)
   return false
 end
 
-function M.new(options, listener)
+function M.new(listener, options)
 
-  options = options or {}
+  -- set your text options here
+  local default = options or { align = "center", fontSize = 42 }
+  listener = listener or function(...) end
 
   local instance = display.newGroup()
-  --instance.anchorChildren = true
+  instance.anchorChildren = true
   instance.items = {}
   instance.selected = 1
 
@@ -46,8 +48,7 @@ function M.new(options, listener)
     local index = #items + 1
     local toggles = split(text)
     items[index] = { name = name, text = toggles[1], toggles = toggles, selected = 1 }
-    self:refresh() 
-    self:update()
+    self:refresh()
     return index
   end
 
@@ -57,26 +58,24 @@ function M.new(options, listener)
       display.remove(self[i])
     end
 
-    -- set your text options here
-    local default = options.text or { align = "center", fontSize = 42 }
-
     for i = 1, #items do
       default.text = items[i].text
       items[i].object = display.newText(default)
       items[i].object:translate(0, (i > 1) and items[i-1].object.contentHeight * (i-1) or 0)
       instance:insert(items[i].object)
+      items[i].object:setTextColor(unpack(options.color or {1,1,1,1}))
     end
+    self:update(1)
   end
 
   function instance:update(index)
     local items = self.items
-    index = index or self.selected
+    index = index or 1
     index = math.min(math.max(index,1),#items)
-    self.selected = index
 
-    -- refresh these to hightlight your menu
-    local selected = options.selected or { time = 250, xScale = 1.075, yScale = 1.075, alpha = 1, transition = easing.outQuad }
-    local normal = options.normal or { time = 350, xScale = 1, yScale = 1, alpha = 0.7, transition = easing.outElastic  }
+    -- change these to hightlight your menu
+    local selected = { time = 0, xScale = 1.075, yScale = 1.075, alpha = 1 }
+    local normal = { time = 0, xScale = 1, yScale = 1, alpha = 0.7 }
 
     for i = 1, #items do
       local item = items[i].object
@@ -86,17 +85,23 @@ function M.new(options, listener)
         transition.to(item, normal)
       end
     end
+
+    -- yes update
+    self.selected = index    
+    return index
   end
 
   function instance:up()
     self:update(self.selected - 1)
+    listener( { phase = "moved" } )
   end
 
   function instance:down()
     self:update(self.selected + 1)
+    listener( { phase = "moved" } )
   end
 
-  function instance:select(item)  
+  function instance:choose(item)  
     local selectedItem = item or self.items[self.selected]
     if #selectedItem.toggles > 1 then
       local newSelected = (selectedItem.selected or 1) + 1
@@ -114,16 +119,18 @@ function M.new(options, listener)
   function instance:touch(event)
     local phase = event.phase
     local name = event.name
-    
+
     -- we are a mouse?
-    if name == "mouse" then
+    if name == "mouse" or phase == "began" then
       for i = 1, #self.items do
         if inBounds(event, self.items[i].object) then
-          self:update(i)
+          if i ~= self.selected then 
+            self:update(i)
+          end
         end
       end
     end
-
+    
     if phase == "ended" then
       Runtime:dispatchEvent( { name = "key", phase = "up", keyName = "enter" } )
     end
@@ -142,7 +149,7 @@ function M.new(options, listener)
       elseif name == "down" then
         instance:down()      
       elseif name == "enter" or name == "space" then
-        local item = instance:select() 
+        local item = instance:choose() 
         if listener then
           listener( { phase = "selected", name = item } )
         else

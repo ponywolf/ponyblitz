@@ -33,7 +33,7 @@ function scene:create( event )
 	end
 
 	-- create a start menu
-	menu = ponymenu.new( { align = "center", font = "scene/menu/font/RobotoMono.ttf", fontSize = 32 }, onMenu)
+	menu = ponymenu.new( onMenu, { align = "center", font = "scene/menu/font/RobotoMono.ttf", fontSize = 32 })
 	menu:add("Play")
 	menu:add("Sound Off,Sound On")
 	menu:add("Quit")
