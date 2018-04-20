@@ -12,6 +12,11 @@ function M.new()
     instance.x, instance.y = centerX, centerY
   end
 
+  function instance:reset()
+    -- places the world on screen at 0,0
+    instance.x, instance.y = 0,0
+  end
+
   function instance:centerObj(obj)
     -- moves the world, so the specified object is on screen
     if obj == nil then return false end

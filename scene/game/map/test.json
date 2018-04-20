@@ -1,34 +1,132 @@
 { "height":100,
+ "infinite":false,
  "layers":[
         {
          "draworder":"topdown",
-         "height":100,
          "name":"game",
          "objects":[
                 {
-                 "height":192,
+                 "height":144.872727272727,
                  "id":4,
-                 "name":"testobject",
+                 "name":"b",
+                 "properties":
+                    {
+                     "bodyType":"dynamic"
+                    },
+                 "propertytypes":
+                    {
+                     "bodyType":"string"
+                    },
+                 "rotation":312.362226302759,
+                 "type":"",
+                 "visible":true,
+                 "width":144.872727272727,
+                 "x":1504.37714427495,
+                 "y":1723.10235137623
+                }, 
+                {
+                 "height":144.872727272727,
+                 "id":5,
+                 "name":"a",
+                 "properties":
+                    {
+                     "bodyType":"dynamic"
+                    },
+                 "propertytypes":
+                    {
+                     "bodyType":"string"
+                    },
+                 "rotation":-311.048104931308,
+                 "type":"",
+                 "visible":true,
+                 "width":144.872727272727,
+                 "x":1361.56917716199,
+                 "y":1619.57278539297
+                }, 
+                {
+                 "height":33.2,
+                 "id":6,
+                 "name":"floor",
+                 "properties":
+                    {
+                     "bodyType":"static"
+                    },
+                 "propertytypes":
+                    {
+                     "bodyType":"string"
+                    },
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":192,
-                 "x":1512,
-                 "y":1528
+                 "width":1018.63636363636,
+                 "x":964,
+                 "y":1872.8
+                }, 
+                {
+                 "height":32,
+                 "id":9,
+                 "name":"camera",
+                 "rotation":0,
+                 "type":"",
+                 "visible":false,
+                 "width":34,
+                 "x":1456,
+                 "y":1608
+                }, 
+                {
+                 "height":34,
+                 "id":10,
+                 "name":"",
+                 "properties":
+                    {
+                     "bodyA":"a",
+                     "bodyB":"b"
+                    },
+                 "propertytypes":
+                    {
+                     "bodyA":"string",
+                     "bodyB":"string"
+                    },
+                 "rotation":0,
+                 "type":"pivot",
+                 "visible":true,
+                 "width":36,
+                 "x":1470,
+                 "y":1713.33333333333
+                }, 
+                {
+                 "height":144.872727272727,
+                 "id":11,
+                 "name":"c",
+                 "properties":
+                    {
+                     "bodyType":"dynamic"
+                    },
+                 "propertytypes":
+                    {
+                     "bodyType":"string"
+                    },
+                 "rotation":19.8980360567035,
+                 "type":"",
+                 "visible":true,
+                 "width":144.872727272727,
+                 "x":1421.25071532011,
+                 "y":1389.62245880346
                 }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
-         "width":100,
          "x":0,
          "y":0
         }],
- "nextobjectid":5,
+ "nextobjectid":12,
  "orientation":"orthogonal",
  "renderorder":"right-down",
+ "tiledversion":"1.1.0",
  "tileheight":32,
  "tilesets":[],
  "tilewidth":32,
+ "type":"map",
  "version":1,
  "width":100
 }

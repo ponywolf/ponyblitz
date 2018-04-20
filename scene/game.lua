@@ -2,6 +2,7 @@
 local composer = require "composer"
 local libworld = require "scene.game.lib.world"
 local ponytiled = require "com.ponywolf.ponytiled"
+local fx = require "com.ponywolf.ponyfx"
 local snap = require "com.ponywolf.snap"
 local json = require "json"
 
@@ -12,34 +13,32 @@ local world, hud, map
 function scene:create( event )
   local view = self.view -- add display objects to this group
   
-	display.setDefault("background", 0.2,0.2,0.2)
-	
   -- load sounds
   self.sounds = require "scene.game.sounds"
   
   -- create an empty world
-  world = libworld.new(2)
-  world:center()
-  view:insert(world)
+--  world = libworld.new()
+--  world:reset()
+--  view:insert(world)
 	
-	local rect = display.newRect(world , 0, 0, 128, 128)
-	rect.strokeWidth = 8
-	rect:setFillColor(0,0,0,0)
-	transition.to(rect, { time = 5000, rotation = -360, iterations = -1 })
+	-- snap world to square
+	--world:centerObj(rect) 
+ 
 	
-  local circle = display.newCircle(world, -250, 0, 64)
-	transition.to(circle, { time = 5000, x=250, iterations = -1, transition = easing.inOutQuad })
-  
+	physics.start()
+	
   -- or load a tiled map
---  local filename = system.pathForFile("scene/game/map/test.json")
---  local data = json.decodeFile(filename)
---  map = ponytiled.new(data, "scene/game/map")
---  map:centerObject("testobject")
---	view:insert(map)
+  local filename = system.pathForFile("scene/game/map/test.json")
+  local data = json.decodeFile(filename)
+  map = ponytiled.new(data, "scene/game/map")
+  map:centerObject("camera")
+	map:extend("pivot")
+	view:insert(map)
 	
+
   -- create an HUD group
   hud = display.newGroup()
-	scene.score = display.newText{ parent=hud, text = "HUD Group", font = "scene/game/font/RobotoMono.ttf", fontSize = "32" }
+	scene.score = display.newText{ parent=hud, text = "HUD Group", font = "RobotoMono.ttf", fontSize = "32" }
   snap(scene.score, "topcenter", 16)
 	view:insert(hud)
 

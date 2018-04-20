@@ -2,6 +2,8 @@
 local composer = require "composer"
 local snap = require "com.ponywolf.snap"
 local ponymenu = require "com.ponywolf.ponymenu"
+local snd = require "com.ponywolf.ponysound"
+local fx = require "com.ponywolf.ponyfx"
 
 -- Variables local to scene
 local scene = composer.newScene()
@@ -18,14 +20,17 @@ function scene:create( event )
 		local phase, name = event.phase, event.name or "none"
 		print (phase, name)
 		if phase == "selected" then
+			snd:play("blip")
 			if name == "play" then
-				composer.gotoScene("scene.game")
+				fx.fadeOut(function() composer.gotoScene("scene.game") end)
 			elseif name == "soundon" then
-				audio.volume = audio.defaultVolume
-				audio.setVolume(audio.volume)  
+				snd:toggleVolume()
 			elseif name == "soundoff" then
-				audio.volume = 0
-				audio.setVolume(audio.volume)  
+				snd:toggleVolume()		
+			elseif name == "musicon" then
+				snd:pauseMusic()
+			elseif name == "musicoff" then
+				snd:resumeMusic()
 			elseif name == "quit" then
 				native.requestExit()
 			end
@@ -33,9 +38,10 @@ function scene:create( event )
 	end
 
 	-- create a start menu
-	menu = ponymenu.new( onMenu, { align = "center", font = "scene/menu/font/RobotoMono.ttf", fontSize = 32 })
+	menu = ponymenu.new( onMenu, { align = "center", font = "RobotoMono.ttf", fontSize = 32 })
 	menu:add("Play")
 	menu:add("Sound Off,Sound On")
+	menu:add("Music Off,Music On")
 	menu:add("Quit")
 
 	view:insert(menu)

@@ -19,10 +19,14 @@ settings = {
 --  "landscapeRight" device in the horizontal position with the home button at the right
 --  "landscapeLeft" device in the horizontal position with the home button at the left
 
-	orientation = {
-		-- Landscape
+--  splashScreen = {
+--    enable = false
+--  },
+
+  orientation = {
+    -- Landscape
     default = "landscapeRight",
-		supported = { "landscapeRight", "landscapeLeft"}
+    supported = { "landscapeRight", "landscapeLeft"}
   },
 
   --  This setting can be used to turned on to disable debug symbol stripping altogether
@@ -30,68 +34,49 @@ settings = {
     --neverStripDebugInfo = true
   },
 
-	window = {
-		titleText = {
-			-- The "default" text will be used if the system is using a language and/or
-			-- country code not defined below. This serves as a fallback mechanism.
-			default = "CoronaBlitz",
+  window = {
+    titleText = {
+      -- The "default" text will be used if the system is using a language and/or
+      -- country code not defined below. This serves as a fallback mechanism.
+      default = "ponyblitz",
+		},
+    resizable = true,
+		defaultViewWidth = 1280,
+		defaultViewHeight = 720,
+		minViewWidth = 800,
+		minViewHeight = 450,
+  },
+
+  iphone = {
+	  xcassets = "Images.xcassets",
+    plist = {
+			NSCalendarsUsageDescription = "ponyblitz would like to use your calendar.",
+			NSPhotoLibraryUsageDescription = "ponyblitz would like to store a photo.",
+			NSCameraUsageDescription = "ponyblitz would like to take a photo.",			
+			UILaunchStoryboardName = "LaunchScreen",
+      NSAppTransportSecurity = { NSAllowsArbitraryLoads=true },
+      ITSAppUsesNonExemptEncryption = false,
+    },
+  },
+
+	android =
+	{
+		usesPermissions =
+		{
+			"android.permission.INTERNET",
+			"android.permission.ACCESS_NETWORK_STATE",
+			"android.permission.WRITE_EXTERNAL_STORAGE",
 		},
 	},
-
-	iphone =
-	{
-		plist =
-		{
-			-- Icon image files table
-			CFBundleIconFiles = {
-				"icons/Icon.png",
-				"icons/Icon@2x.png",
-				"icons/Icon-60.png",
-				"icons/Icon-60@2x.png",
-				"icons/Icon-60@3x.png",
-				"icons/Icon-72.png",
-				"icons/Icon-72@2x.png",
-				"icons/Icon-76.png",
-				"icons/Icon-76@2x.png",
-				"icons/Icon-167.png",
-				"icons/Icon-Small-40.png",
-				"icons/Icon-Small-40@2x.png",
-				"icons/Icon-Small-50.png",
-				"icons/Icon-Small-50@2x.png",
-				"icons/Icon-Small.png",
-				"icons/Icon-Small@2x.png",
-				"icons/Icon-Small@3x.png"
-			},
-      NSPhotoLibraryUsageDescription = "Unused",
-      NSCameraUsageDescription = "Unused",
-      UILaunchImages = {
-        {  -- iPad LandscapeRight
-          ["UILaunchImageMinimumOSVersion"] = "7.0",
-          ["UILaunchImageName"] = "Default",
-          ["UILaunchImageOrientation"] = "Landscape",
-          ["UILaunchImageSize"] = "{768, 1024}"
-        },
-      },
-    }
-  },			
-
-  plugins =
-  {
---    ["plugin.utf8"] =
---    {
---      publisherId = "com.coronalabs",
---    },
-  },
 
   --  Files to be excluded are specified per platform (iphone, android or all) using simple pattern
   --  matching where * means any string of characters, sometimes including /
   excludeFiles = {
 
-  -- Exclude all files at paths
-    all = { },
-    android = { },
-		win32 = { "Default*.png" },
-		osx = { "Default*.png" },
+    -- Exclude all files at paths
+    all = { "art/*", "README.md" },
+    android = { "art/**", "**.xcassets**" },
+		web = { "Icon*.png", "Default*.png", "build.settings.*", "README.md"},
   },
-  
+
 }

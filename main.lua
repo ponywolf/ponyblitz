@@ -19,15 +19,17 @@ display.setStatusBar( display.HiddenStatusBar )
 
 -- Removes bottom bar on Android 
 if system.getInfo( "androidApiLevel" ) and system.getInfo( "androidApiLevel" ) < 19 then
-  native.setProperty( "androidSystemUiVisibility", "lowProfile" )
+	native.setProperty( "androidSystemUiVisibility", "lowProfile" )
 else
-  native.setProperty( "androidSystemUiVisibility", "immersiveSticky" ) 
+	native.setProperty( "androidSystemUiVisibility", "immersiveSticky" ) 
 end
 
 -- reserve audio for menu and bgsound
-audio.reserveChannels(2)
-audio.defaultVolume = 0.5	
-audio.volume = audio.defaultVolume
+local snd = require "com.ponywolf.ponysound"
+snd:setVolume(0.5)
+snd:batch("blip", "laser", "explode", "jump", "thud", "coin")
+snd:loadMusic("snd/venus.wav")
+snd:playMusic()
 
 -- are we running on a simulator?
 local isSimulator = "simulator" == system.getInfo( "environment" )
@@ -37,32 +39,34 @@ local isMobile = ("ios" == system.getInfo("platform")) or ("android" == system.g
 -- key show our frame rate and memory usage, "P" to show physics
 if isSimulator then 
 
-  -- show FPS
-  local visualMonitor = require( "com.ponywolf.visualMonitor" )
-  local visMon = visualMonitor:new()
-  visMon.isVisible = false
+	-- show FPS
+	local visualMonitor = require( "com.ponywolf.visualMonitor" )
+	local visMon = visualMonitor:new()
+	visMon.isVisible = false
 
-  -- show/hide physics
-  local function key(event)
-    local phase = event.phase
-    local key = event.keyName
-    if phase == "up" then
-      if key == "p" then
-        physics.show = not physics.show
-        if physics.show then 
-          physics.setDrawMode( "hybrid" ) 
-        else
-          physics.setDrawMode( "normal" )  
-        end
-      elseif key == "f" then
-        visMon.isVisible = not visMon.isVisible
-      elseif key == "m" then
-        audio.volume = (audio.volume or audio.defaultVolume) > 0 and 0 or audio.defaultVolume
-        audio.setVolume(audio.volume)          
-      end
-    end
-  end
-  Runtime:addEventListener( "key", key ) 
+	-- show/hide physics
+	local function key(event)
+		local phase = event.phase
+		local key = event.keyName
+		if phase == "up" then
+			if key == "p" then
+				physics.show = not physics.show
+				if physics.show then 
+					physics.setDrawMode( "hybrid" ) 
+				else
+					physics.setDrawMode( "normal" )  
+				end
+			elseif key == "f" then
+				visMon.isVisible = not visMon.isVisible
+			elseif key == "m" then
+				snd:toggleVolume()       
+			elseif key == "escape" then
+				composer.gotoScene( "scene.menu", { params={ } } )
+				composer.removeHidden()
+			end
+		end
+	end
+	Runtime:addEventListener( "key", key ) 
 end
 
 -- this module turns gamepad axis events into keyboard
@@ -70,10 +74,11 @@ end
 -- for joystick and keyboard control
 require("com.ponywolf.joykey").start()
 
-local scanlines = require "scene.game.lib.scanlines"
-local stage = display.getCurrentStage()
-stage:insert(composer.stage)
+--local scanlines = require "scene.game.lib.scanlines"
+--local stage = display.getCurrentStage()
+--stage:insert(composer.stage)
 --stage:insert(scanlines.new())
 
 -- go to menu screen
-composer.gotoScene( "scene.menu", { params={ } } )
+display.setDefault("background", 0.2,0.2,0.2)
+composer.gotoScene( "scene.game", { params={ } } )

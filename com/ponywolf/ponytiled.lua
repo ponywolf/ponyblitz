@@ -313,14 +313,14 @@ function M.new(data, dir)
     -- each custom object above has its own ponywolf.plugin module
     for t = 1, #extensions do 
       -- load each module based on type
-      local plugin = require ((map.extensions or defaultExtensions) .. extensions[t])
+      local plugin = require ((self.extensions or defaultExtensions) .. extensions[t])
       -- find each type of tiled object
-      local images = map:listTypes(extensions[t])
+      local images = self:listTypes(extensions[t])
       if images then 
         -- do we have at least one?
         for i = 1, #images do
           -- extend the display object with its own custom code
-          images[i] = plugin.new(images[i])
+          images[i] = plugin.new(images[i], self)
         end
       end  
     end
@@ -372,9 +372,9 @@ function M.new(data, dir)
 
   function map:centerObject(obj)
     -- moves the world, so the specified object is on screen
-    if obj == nil then return false end
     obj = self:findObject(obj)
-
+    if not obj then return false end
+    
     -- easiest way to scroll a map based on a character
     -- find the difference between the hero and the display center
     -- and move the world to compensate
