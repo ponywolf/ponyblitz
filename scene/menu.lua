@@ -11,10 +11,7 @@ local menu
 
 function scene:create( event )
 	local view = self.view -- add display objects to this group
-
-	-- load sounds
-	self.sounds = require "scene.game.sounds"
-
+	
 	-- menu listener
 	local function onMenu(event)
 		local phase, name = event.phase, event.name or "none"
@@ -73,11 +70,7 @@ function scene:hide( event )
 end
 
 function scene:destroy( event )
-	audio.stop()
-	for s,v in pairs( self.sounds ) do
-		audio.dispose( v )
-		self.sounds[s] = nil
-	end
+
 end
 
 scene:addEventListener("create")

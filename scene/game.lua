@@ -13,9 +13,7 @@ local world, hud, map
 function scene:create( event )
   local view = self.view -- add display objects to this group
   
-  -- load sounds
-  self.sounds = require "scene.game.sounds"
-  
+ 
   -- create an empty world
 --  world = libworld.new()
 --  world:reset()
@@ -73,11 +71,7 @@ function scene:hide( event )
 end
 
 function scene:destroy( event )
-	audio.stop()
-	for s,v in pairs( self.sounds ) do
-		audio.dispose( v )
-		self.sounds[s] = nil
-	end
+
 end
 
 scene:addEventListener("create")

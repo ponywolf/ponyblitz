@@ -81,4 +81,4 @@ require("com.ponywolf.joykey").start()
 
 -- go to menu screen
 display.setDefault("background", 0.2,0.2,0.2)
-composer.gotoScene( "scene.game", { params={ } } )
+composer.gotoScene( "scene.menu", { params={ } } )
