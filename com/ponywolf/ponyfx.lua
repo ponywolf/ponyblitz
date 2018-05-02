@@ -282,6 +282,7 @@ function M.newFootprint(object, options)
 
   options = options or {}
 
+  local image = options.image or "com/ponywolf/ponyfx/footprints.png"
 
   local size = options.size or 48
   local w, h = size, size
