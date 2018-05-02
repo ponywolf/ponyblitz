@@ -15,7 +15,7 @@ audio.reserveChannels(1)
 M.path = "snd/"
 M.ext = ".wav"
 
-local defaultVolume = 0.5
+local defaultVolume = 0.333
 local defaultMusicVolume = 1.0
 
 function M:add(name, path, ext)

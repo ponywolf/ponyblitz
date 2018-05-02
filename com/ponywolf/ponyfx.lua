@@ -282,7 +282,6 @@ function M.newFootprint(object, options)
 
   options = options or {}
 
-  local image = options.image or "img/game/footprints.png"
 
   local size = options.size or 48
   local w, h = size, size
@@ -447,12 +446,12 @@ function M.comic(text, x, y)
     x = x or display.contentCenterX,
     y = y or 192,
     --width = display.contentWidth * 0.8,
-    font = "com/ponywolf/ponyfx/Bangers-Regular.ttf",
+    font = "Bangers-Regular.ttf",
     fontSize = 99,
     align = "center",
     color = {0.9,0.4,0.35,1},
     strokeColor = {1,1,1,1},
-    strokeWidth = 4
+    strokeWidth = 2
   }
   local comicText = stroke.newText(default)
   comicText.rotation = math.random(12) - 6

@@ -30,7 +30,7 @@ function scene:create( event )
   local data = json.decodeFile(filename)
   map = ponytiled.new(data, "scene/game/map")
   map:centerObject("camera")
-	map:extend("pivot")
+	map:extend("joint")
 	view:insert(map)
 	
 

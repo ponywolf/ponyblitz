@@ -2,8 +2,8 @@
 
 -- define module
 local M = {}
-local useContainer = true
-local renderSteps = 2
+local useContainer = false
+local renderSteps = 4
 
 function M.newText(options)
 
@@ -19,7 +19,7 @@ function M.newText(options)
   -- new options 
   local color = options.color or {1,1,1,1}
   local strokeColor = options.strokeColor or {0,0,0,0.75}
-  local strokeWidth = options.strokeWidth or 2
+  local strokeWidth = options.strokeWidth or 1
 
   -- create the main text
   local text = display.newText(options)
