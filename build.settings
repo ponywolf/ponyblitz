@@ -43,8 +43,8 @@ settings = {
     resizable = true,
 		defaultViewWidth = 1280,
 		defaultViewHeight = 720,
-		minViewWidth = 800,
-		minViewHeight = 450,
+		minViewWidth = 960,
+		minViewHeight = 540,
   },
 
   iphone = {
@@ -74,9 +74,12 @@ settings = {
   excludeFiles = {
 
     -- Exclude all files at paths
-    all = { "art/*", "README.md" },
-    android = { "art/**", "**.xcassets**" },
-		web = { "Icon*.png", "Default*.png", "build.settings.*", "README.md"},
+    all = { "*art/*", "README.md" },
+    android = { "*.xcassets*", "*.storyboardc*" },
+		web = { "icon*.png", "default*.png", "build.settings", "*.xcassets*", "*.storyboardc*" },
+		ios = { "icon-*dpi.png" },
+		win32 = { "icon*.png", "default*.png", "build.settings", "*.xcassets*", "*.storyboardc*" },
+		macos = { "icon*.png", "default*.png", "build.settings", "*.xcassets*", "*.storyboardc*" },
   },
 
 }
