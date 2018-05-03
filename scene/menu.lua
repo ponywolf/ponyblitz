@@ -11,7 +11,7 @@ local menu
 
 function scene:create( event )
 	local view = self.view -- add display objects to this group
-	
+
 	-- menu listener
 	local function onMenu(event)
 		local phase, name = event.phase, event.name or "none"
@@ -28,6 +28,13 @@ function scene:create( event )
 				snd:pauseMusic()
 			elseif name == "musicoff" then
 				snd:resumeMusic()
+			elseif name == "fullscreen" then
+				display.fullscreen = not display.fullscreen 
+				if display.fullscreen then
+					native.setProperty("windowMode", "fullscreen")
+				else
+					native.setProperty("windowMode", "normal")
+				end  			
 			elseif name == "quit" then
 				native.requestExit()
 			end
@@ -37,6 +44,7 @@ function scene:create( event )
 	-- create a start menu
 	menu = ponymenu.new( onMenu, { align = "center", font = "RobotoMono.ttf", fontSize = 32 })
 	menu:add("Play")
+	menu:add("Fullscreen")
 	menu:add("Sound Off,Sound On")
 	menu:add("Music Off,Music On")
 	menu:add("Quit")
