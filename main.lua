@@ -44,6 +44,21 @@ if isSimulator then
 	local visMon = visualMonitor:new()
 	visMon.isVisible = false
 
+	local function screenshot()	
+		local date = os.date( "*t" )
+		local timeStamp = table.concat({date.year .. date.month .. date.day .. date.hour .. date.min .. date.sec})
+		local fname = display.pixelWidth.."x"..display.pixelHeight.."_"..timeStamp..".png"
+		local capture = display.captureScreen(false)
+		capture.x, capture.y = display.contentWidth * 0.5, display.contentHeight * 0.5
+		local function save()
+			display.save( capture, { filename=fname, baseDir=system.DocumentsDirectory, isFullResolution=true } )    
+			capture:removeSelf()
+			capture = nil
+		end
+		timer.performWithDelay( 100, save, 1)
+		return true               
+	end
+	
 	-- show/hide physics
 	local function key(event)
 		local phase = event.phase
@@ -58,6 +73,8 @@ if isSimulator then
 				end
 			elseif key == "f" then
 				visMon.isVisible = not visMon.isVisible
+			elseif key == "s" then
+				screenshot()
 			elseif key == "m" then
 				snd:toggleVolume()       
 			elseif key == "escape" then
