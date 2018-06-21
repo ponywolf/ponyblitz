@@ -279,13 +279,14 @@ function M.new(data, dir)
           -- apply custom properties
           polygon = inherit(polygon, layer.properties)          
           polygon = inherit(polygon, object.properties)
-          polygon.points = points
           polygon.rotation = object.rotation
+          polygon.points = points
           -- vector properties
           if polygon.fillColor then polygon:setFillColor(decodeTiledColor(polygon.fillColor)) end
           if polygon.strokeColor then polygon:setStrokeColor(decodeTiledColor(polygon.strokeColor)) end                       
         elseif object.ellipse then -- circles
           local radius = (object.width + object.height) * 0.25
+          local circle = display.newCircle(objectGroup, 0, 0, radius)          
           circle.anchorX, circle.anchorY = 0, 0
           circle.x, circle.y = object.x, object.y
           circle.rotation = object.rotation
@@ -407,6 +408,14 @@ function M.new(data, dir)
     local objx, objy = obj:localToContent(0,0)
     objx, objy = centerX - objx, centerY - objy
     self.x, self.y = self.x + objx, self.y + objy
+  end
+
+  function map:centerAnchor()
+    for layer = 1, self.numChildren do
+      for object = 1, map[layer].numChildren do
+        map[layer][object]:translate(-width/2, -height/2)
+      end
+    end
   end
 
 -- Make sure map stays on screen
