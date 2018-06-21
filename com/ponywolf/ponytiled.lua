@@ -286,7 +286,6 @@ function M.new(data, dir)
           if polygon.strokeColor then polygon:setStrokeColor(decodeTiledColor(polygon.strokeColor)) end                       
         elseif object.ellipse then -- circles
           local radius = (object.width + object.height) * 0.25
-          local circle = display.newCircle(objectGroup, 0, 0, radius)
           circle.anchorX, circle.anchorY = 0, 0
           circle.x, circle.y = object.x, object.y
           circle.rotation = object.rotation

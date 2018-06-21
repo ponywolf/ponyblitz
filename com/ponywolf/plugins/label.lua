@@ -1,8 +1,7 @@
--- tiledObject template
-
--- Use this as a template to extend a tiled object with functionality
+-- smart label
 
 local M = {}
+local renderSteps = 1
 
 local function decodeTiledColor(hex)
   hex = hex or "#FF888888"
@@ -16,9 +15,70 @@ local function decodeTiledColor(hex)
   return r,g,b,a
 end
 
+local function strokedText(options)
+
+  -- default options for instance
+  options = options or {}
+  local x = options.x or 0
+  local y = options.y or 0
+  local h = options.height
+  local parent = options.parent
+  options.height = nil
+  options.x = 0
+  options.y = 0
+  options.parent = nil
+
+  -- new options 
+  local color = options.color or {1,1,1,1}
+  local strokeColor = options.strokeColor or {0,0,0,0.75}
+  local strokeWidth = options.strokeWidth or 1
+
+  -- create the main text
+  local text = display.newText(options)
+  text:setFillColor(unpack(color))
+
+  -- make a bounding box based on the default text
+  local width = math.max(text.contentWidth, options.width or 0)
+
+  --  create snapshot to hold text/strokes
+  local stroked = display.newGroup()
+  if parent then parent:insert(stroked) end
+  stroked:insert(text)
+  stroked.strokes = {}
+  stroked.unstroked = text
+
+  -- draw the strokes
+  for i = -strokeWidth, strokeWidth, renderSteps do
+    for j = -strokeWidth, strokeWidth, renderSteps do
+      if not (i == 0 and j == 0) then --skip middle
+        options.x,options.y = i,j
+        local stroke = display.newText(options)
+        stroke:setTextColor(decodeTiledColor(strokeColor))
+        stroked:insert(stroke)
+      end
+    end
+  end
+
+  -- call this function to update the label
+  function stroked:update(text)
+    self.text = text
+    for i=1, stroked.numChildren do
+      stroked[i].text = text
+    end
+  end
+
+  function stroked:setTextColor(...)
+    stroked.unstroked:setFillColor(...)
+  end
+
+  stroked:translate(x,y)
+  text:toFront()
+  return stroked
+end
+
 function M.new(instance)
   if not instance then error("ERROR: Expected display object") end  
-  
+
   -- remember inital object
   local tiledObj = instance
 
@@ -27,34 +87,32 @@ function M.new(instance)
   local font = tiledObj.font or native.systemFont
   local size = tiledObj.size or 20
   local stroked = tiledObj.stroked
-  local sr,sg,sb,sa = decodeTiledColor(tiledObj.strokeColor or "000000CC")
+  local strokeColor = tiledObj.labelStrokeColor or "000000CC"
   local align = tiledObj.align or "center"
   local color = tiledObj.color or "FFFFFFFF"
   local params = { parent = tiledObj.parent,
-    x = tiledObj.x, y = tiledObj.y,
-    text = text, font = font, fontSize = size,
+    x = tiledObj.x, y = tiledObj.y, strokeColor = strokeColor,
+    text = text, font = font, fontSize = size, strokeWidth = tiledObj.labelStrokeWidth,
     align = align, width = tiledObj.width } 
 
   if stroked then
-    local newStrokeColor = {
-      highlight = { r=sr, g=sg, b=sb, a=sa },
-      shadow = { r=sr, g=sg, b=sb, a=sa }
-    }
-    instance = display.newEmbossedText(params)
-    instance:setTextColor(decodeTiledColor(color))
-    instance:setEmbossColor(newStrokeColor)
+    instance = strokedText(params)
   else
     instance = display.newText(params)
-    instance:setTextColor(decodeTiledColor(color))
+    function instance:update(text) instance.text = text end
   end
-  
-  -- push the rest of the properties
+  instance:setTextColor(decodeTiledColor(color))
+
+-- push the rest of the properties
   instance.rotation = tiledObj.rotation 
   instance.name = tiledObj.name 
   instance.type = tiledObj.type
   instance.alpha = tiledObj.alpha 
+
+  if not tiledObj.keepInstance then
+    display.remove(tiledObj)
+  end
   
-  display.remove(tiledObj)
   return instance
 end
 

@@ -74,9 +74,9 @@ settings = {
   excludeFiles = {
 
     -- Exclude all files at paths
-    all = { "art/*", "README.md" },
+    all = { "*art/*", "README.md" },
     android = { "*.xcassets*", "*.storyboardc*" },
-		web = { "Icon*.png", "default*.png", "*.xcassets*", "*.storyboardc*" },
+		web = { "Icon-*dpi.png", "default*.png", "*.xcassets*", "*.storyboardc*" },
 		ios = { "Icon-*dpi.png" },
 		win32 = { "Icon*.png", "default*.png", "*.xcassets*", "*.storyboardc*" },
 		macos = { "Icon*.png", "default*.png", "*.xcassets*", "*.storyboardc*" },
