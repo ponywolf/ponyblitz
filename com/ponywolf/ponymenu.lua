@@ -116,6 +116,24 @@ function M.new(listener, options)
     return selectedItem.name
   end
 
+  function instance:set(toggle)
+    for i = 1, #self.items do 
+      local selectedItem = self.items[i]
+      if #selectedItem.toggles > 1 then
+        for j = 1, #selectedItem.toggles do 
+          if selectedItem.toggles[j]:lower():gsub(" ","") == toggle then 
+            selectedItem.text = selectedItem.toggles[j]
+            selectedItem.object.text = selectedItem.text 
+            selectedItem.selected = i
+            selectedItem.name = selectedItem.text:lower():gsub(" ","")
+            return true
+          end
+        end
+      end
+    end
+    print("WARNING: Toggle not found",toggle)
+  end
+
   function instance:touch(event)
     local phase = event.phase
     local name = event.name
@@ -130,7 +148,7 @@ function M.new(listener, options)
         end
       end
     end
-    
+
     if phase == "ended" then
       Runtime:dispatchEvent( { name = "key", phase = "up", keyName = "enter" } )
     end
