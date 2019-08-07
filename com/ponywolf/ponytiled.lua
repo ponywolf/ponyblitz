@@ -3,9 +3,9 @@
 -- Loads LUA saved map files from Tiled http://www.mapeditor.org/
 
 local physics = require "physics"
-local path = require "com.luapower.path" --optional to resolve relative paths on android
+--local path = require "com.luapower.path" --optional to resolve relative paths on android
+--local translate = require "com.ponywolf.translator" 
 local xml = require("com.coronalabs.xml").newParser()
-local translate = require "com.ponywolf.translator" 
 local json = require "json"
 
 local M = {}
@@ -27,7 +27,9 @@ local function tiledProperties(properties)
     for i = 1, #properties do
       if translate then
         if properties[i].type == "string" and (properties[i].name == "text") and (not tonumber(properties[i].value)) then
+          if translate then 
           properties[i].value = translate(properties[i].value)
+          end
         end
       end
       if properties[i].value ~= "" then t[properties[i].name] = properties[i].value end
