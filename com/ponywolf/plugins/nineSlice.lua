@@ -154,7 +154,6 @@ function M.new(instance)
 
   if not instance then error("ERROR: Expected display object") end
   if not instance.filename then error("ERROR: Expected display object with filename parameter") end
-  print (instance.filename)
   
   instance.alpha = 0.2
   

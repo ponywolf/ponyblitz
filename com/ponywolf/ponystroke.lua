@@ -3,7 +3,7 @@
 -- define module
 local M = {}
 local useContainer = false
-local renderSteps = 4
+local renderSteps = 0.75
 
 function M.newText(options)
 
@@ -15,11 +15,12 @@ function M.newText(options)
   options.height = nil
   options.x = 0
   options.y = 0
+  local parent = options.parent
 
   -- new options 
   local color = options.color or {1,1,1,1}
-  local strokeColor = options.strokeColor or {0,0,0,0.75}
-  local strokeWidth = options.strokeWidth or 1
+  local strokeColor = options.strokeColor or {0,0,0,0.65}
+  local strokeWidth = options.strokeWidth or 1.5
 
   -- create the main text
   local text = display.newText(options)
@@ -37,6 +38,7 @@ function M.newText(options)
   else 
     stroked = display.newGroup()
   end
+  if parent then parent:insert(stroked) end
 
   stroked.strokes = {}
   stroked.unstroked = text
@@ -59,6 +61,15 @@ function M.newText(options)
     end
   end
 
+  if useContainer then
+    stroked.group:insert(text)  
+  else
+    stroked:insert(text) 
+    function stroked:setFillColor(r,g,b,a)
+      stroked.unstroked:setTextColor(r,g,b,a)
+    end
+  end
+
   -- call this function to update the text and invalidate the canvas
   function stroked:update(text)
     self.unstroked.text = text
@@ -66,16 +77,13 @@ function M.newText(options)
     for i=1, #self.strokes do
       self.strokes[i].text = text
     end
-    if self.invalidate then self:invalidate() end
+    if useContainer and self.invalidate then self:invalidate() end
   end
 
-  if useContainer then
-    stroked.group:insert(text)  
-  else
-    stroked:insert(text) 
-    function stroked:setFillColor(r,g,b,a)
-      stroked.unstroked:setFillColor(r,g,b,a)
-    end
+  -- call this function to set text color
+  function stroked:setTextColor(r,g,b,a)
+    stroked.unstroked:setTextColor(r,g,b,a)
+    --if self.invalidate then self:invalidate() end
   end
 
   stroked:translate(x,y) 

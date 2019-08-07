@@ -3,8 +3,9 @@
 -- Loads LUA saved map files from Tiled http://www.mapeditor.org/
 
 local physics = require "physics"
---local path = require "com.luapower.path"
+local path = require "com.luapower.path" --optional to resolve relative paths on android
 local xml = require("com.coronalabs.xml").newParser()
+local translate = require "com.ponywolf.translator" 
 local json = require "json"
 
 local M = {}
@@ -18,20 +19,42 @@ local function hasbit(x, p) return x % (p + p) >= p end
 local function setbit(x, p) return hasbit(x, p) and x or x + p end
 local function clearbit(x, p) return hasbit(x, p) and x - p or x end
 
+
+local function tiledProperties(properties)
+  if (#properties > 0) and properties[1].name and properties[1].value then  
+    --new tiled style
+    local t = {}
+    for i = 1, #properties do
+      if translate then
+        if properties[i].type == "string" and (properties[i].name == "text") and (not tonumber(properties[i].value)) then
+          properties[i].value = translate(properties[i].value)
+        end
+      end
+      if properties[i].value ~= "" then t[properties[i].name] = properties[i].value end
+    end
+    return t
+  else
+    return properties
+  end
+end
+
+
 local function inherit(image, properties)
   for k,v in pairs(properties) do
-    image[k] = v == "" and nil or v
+    if v ~= "" then image[k] = v end
   end
   return image
 end
 
-local function centerAnchor(image)
+local function centerAnchor(image, anchorX, anchorY)
+  anchorX, anchorY = anchorX or 0.5, anchorY or 0.5
   if image.contentBounds then 
     local bounds = image.contentBounds
-    local actualCenterX, actualCenterY =  (bounds.xMin + bounds.xMax)/2 , (bounds.yMin + bounds.yMax)/2
-    image.anchorX, image.anchorY = 0.5, 0.5  
+    local actualCenterX, actualCenterY =  (bounds.xMin * (1 - anchorX) + (bounds.xMax * anchorX)), 
+    (bounds.yMin * (1 - anchorY)) + (bounds.yMax * anchorY)
     image.x = actualCenterX
     image.y = actualCenterY 
+    image.anchorX, image.anchorY = anchorX, anchorY      
   end
 end
 
@@ -71,7 +94,6 @@ function M.new(data, dir)
     local tsiw, tsih = tileset.imagewidth, tileset.imageheight
     local margin, spacing = tileset.margin or 0, tileset.spacing or 0
     local w, h = tileset.tilewidth, tileset.tileheight
-    local gid = 0
 
     local options = {
       frames = {},
@@ -91,8 +113,7 @@ function M.new(data, dir)
           width = w,
           height = h,
         }
-        gid = gid + 1
-        table.insert( frames, gid, element )
+        frames[#frames + 1] = element
       end
     end
     print ("LOADED:", dir .. tileset.image)
@@ -103,10 +124,11 @@ function M.new(data, dir)
     local last = tileset.firstgid
     if tileset.image then
       return tileset.firstgid + tileset.tilecount - 1
-    elseif tileset.tiles then 
-      for k,_ in pairs(tileset.tiles) do
-        if tonumber(k) + tileset.firstgid > last then
-          last = tonumber(k) + tileset.firstgid
+    elseif tileset.tiles then       
+      for k,v in pairs(tileset.tiles) do
+        local l = (v.id or tonumber(k)) + tileset.firstgid
+        if l > last then
+          last = l
         end
       end
       return last
@@ -140,6 +162,7 @@ function M.new(data, dir)
         tileset.source = nil -- no longer load the XML
       end
       local lastgid = findLast(tileset)
+
       if gid >= firstgid and gid <= lastgid then
         if tileset.image then -- spritesheet
           if not sheets[i] then 
@@ -147,14 +170,25 @@ function M.new(data, dir)
           end
           return gid - firstgid + 1, flip, sheets[i]
         else -- collection of images
-          for k,v in pairs(tileset.tiles) do
-            if tonumber(k) == (gid - firstgid + (data.luaversion and 1 or 0)) then
-              return v.image, flip -- may need updating with documents directory
+          if not tileset.tiles[1] then
+            for k,v in pairs(tileset.tiles) do
+              if tonumber(k) == (gid - firstgid + (data.luaversion and 1 or 0)) then
+                return v.image, flip -- may need updating with documents directory
+              end
+            end
+          end
+
+          -- newer tiled format is found here
+          for t = 1, #tileset.tiles do
+            local tile = tileset.tiles[t]
+            if tonumber(tile.id) == gid - firstgid  + (data.luaversion and 1 or 0) then
+              return tile.image, flip -- may need updating with documents directory
             end
           end
         end
       end
     end
+
     return false
   end
 
@@ -173,7 +207,7 @@ function M.new(data, dir)
           local tileNumber = layer.data[item] or 0
           local gid, flip, sheet = gidLookup(tileNumber)
           if gid then
-            local image = sheet and display.newImage(objectGroup, sheet, gid, 0, 0) or display.newImage(objectGroup, gid, 0, 0)
+            local image = sheet and display.newImage(objectGroup, sheet, gid, 0, 0) or display.newImage(objectGroup, dir .. gid, 0, 0)
             image.anchorX, image.anchorY = 0,1
             image.gid = tileNumber
             image.x, image.y = tx * data.tilewidth, (ty+1) * data.tileheight
@@ -194,6 +228,7 @@ function M.new(data, dir)
       for j = 1, #layer.objects do
         local object = layer.objects[j]
         object.properties = object.properties or {} -- make sure we have a properties table
+        object.properties = tiledProperties(object.properties)
         if object.gid then
           local gid, flip, sheet = gidLookup(object.gid)
           if gid then
@@ -210,12 +245,14 @@ function M.new(data, dir)
             image.type = object.type
             image.filename = sheet and "none" or (dir .. gid)
             -- apply base properties
+            local anchorX, anchorY = object.properties.anchorX, object.properties.anchorY
             image.anchorX, image.anchorY = 0, 1
             image.x, image.y = object.x, object.y
             image.rotation = object.rotation
             image.isVisible = object.visible
             image.gid = object.gid
-            centerAnchor(image)
+            centerAnchor(image, anchorX, anchorY)
+            if image.fillColor then polygon:setFillColor(decodeTiledColor(image.fillColor)) end            
             -- flip it
             if flip.xy then
               print("WARNING: Unsupported Tiled rotation x,y in ", object.name)
@@ -233,8 +270,8 @@ function M.new(data, dir)
               end
             end            
             -- not so simple physics
-            if object.properties.bodyType or object.type == "physics" then
-              physics.addBody(image, object.properties.bodyType or "dynamic", object.properties)
+            if object.properties.bodyType then
+              physics.addBody(image, object.properties.bodyType, object.properties)
             end
             -- apply custom properties
             image = inherit(image, layer.properties)            
@@ -264,14 +301,14 @@ function M.new(data, dir)
             polygon:translate(originX, originY)
           end
           -- simple physics
-          if object.properties.bodyType or object.type == "physics" then
+          if object.properties.bodyType then
             if #points > 8 then 
               object.properties.chain = unpackPoints(points, -originX, -originY)
               object.properties.connectFirstAndLastChainVertex = object.polygon and true or false
             else
               object.properties.shape = unpackPoints(points, -originX, -originY)
             end
-            physics.addBody(polygon, object.properties.bodyType or "dynamic", object.properties)
+            physics.addBody(polygon, object.properties.bodyType, object.properties)
           end  
           -- name and type
           polygon.name = object.name
@@ -280,22 +317,19 @@ function M.new(data, dir)
           polygon = inherit(polygon, layer.properties)          
           polygon = inherit(polygon, object.properties)
           polygon.rotation = object.rotation
-          polygon.points = points
           -- vector properties
           if polygon.fillColor then polygon:setFillColor(decodeTiledColor(polygon.fillColor)) end
           if polygon.strokeColor then polygon:setStrokeColor(decodeTiledColor(polygon.strokeColor)) end                       
         elseif object.ellipse then -- circles
-          local radius = (object.width + object.height) * 0.25
-          local circle = display.newCircle(objectGroup, 0, 0, radius)          
+          local circle = display.newCircle(objectGroup, 0, 0, (object.width + object.height) * 0.25)
           circle.anchorX, circle.anchorY = 0, 0
           circle.x, circle.y = object.x, object.y
           circle.rotation = object.rotation
           circle.isVisible = object.visible
           centerAnchor(circle)
           -- simple physics
-          if object.properties.bodyType or object.type == "physics" then
-            object.properties.radius = radius
-            physics.addBody(circle, object.properties.bodyType or "dynamic", object.properties)
+          if object.properties.bodyType then
+            physics.addBody(circle, object.properties.bodyType, object.properties)
           end 
           -- name and type
           circle.name = object.name
@@ -314,8 +348,8 @@ function M.new(data, dir)
           rect.isVisible = object.visible
           centerAnchor(rect)
           -- simple physics
-          if object.properties.bodyType or object.type == "physics" then
-            physics.addBody(rect, object.properties.bodyType or "dynamic", object.properties)
+          if object.properties.bodyType then
+            physics.addBody(rect, object.properties.bodyType, object.properties)
           end 
           -- name and type
           rect.name = object.name
@@ -368,6 +402,24 @@ function M.new(data, dir)
     return false
   end
 
+  -- return all display objects with names
+  function map:findObjects(...)
+    local objects = {}
+    for layers = self.numChildren,1,-1 do
+      local layer = self[layers]
+      if layer.numChildren then
+        for i = layer.numChildren,1,-1 do
+          for j = 1, #arg do 
+            if arg[j]==nil or layer[i].name == arg[j] then
+              objects[#objects+1] = layer[i]
+            end
+          end
+        end
+      end
+    end
+    return objects
+  end
+
 -- return all display objects with type
   function map:listTypes(...)
     local objects = {}
@@ -395,6 +447,18 @@ function M.new(data, dir)
       end
     end
     return false
+  end
+
+  function map:searchLayers(name)
+    local found = {}
+    if self.numChildren then
+      for layers=1, self.numChildren do
+        if self[layers].name:find(name) then -- search layers
+          found[#found+1] = self[layers]
+        end
+      end
+    end
+    return found 
   end
 
   function map:centerObject(obj)
@@ -439,11 +503,19 @@ function M.new(data, dir)
     return (a.x or 0) + (a.width or 0) * 0.5 > (b.x or 0) + (b.width or 0) * 0.5
   end
 
+  local function leftToRight(a,b)
+    return (a.x or 0) + (a.width or 0) * 0.5 < (b.x or 0) + (b.width or 0) * 0.5
+  end
+
   local function upToDown(a,b)
     return (a.y or 0) + (a.height or 0) * 0.5 < (b.y or 0) + (b.height or 0) * 0.5 
   end
 
-  function map:sort()
+  local function downToUp(a,b)
+    return (a.y or 0) + (a.height or 0) * 0.5 > (b.y or 0) + (b.height or 0) * 0.5 
+  end
+
+  function map:sort(reverse)
     for layer = 1, self.numChildren do
       local objects = {}    
       local layerToSort = self[layer] or {}
@@ -451,14 +523,37 @@ function M.new(data, dir)
         for i = 1, layerToSort.numChildren do
           objects[#objects+1] = layerToSort[i]
         end
-        table.sort(objects, rightToLeft)  
-        table.sort(objects, upToDown)      
+        table.sort(objects, reverse and leftToRight or rightToLeft)  
+        table.sort(objects, reverse and downToUp or upToDown)      
       end
       for i = #objects, 1, -1 do
         if objects[i].toBack then
           objects[i]:toBack()
         end      
       end      
+    end
+  end
+
+  function map:soloLayer(...)
+    if self.numChildren then
+      for i=1, self.numChildren do
+        self[i].wasVisible = self[i].isVisible
+        self[i].isVisible = false
+        for j = 1, #arg do 
+          if self[i].name == arg[j] then
+            self[i].isVisible = true
+          end
+        end
+      end
+    end
+    return false
+  end
+
+  function map:defaultLayers()
+    if self.numChildren then
+      for i=1, self.numChildren do
+        self[i].isVisible = (self[i].wasVisible == nil) and self[i].isVisible or self[i].wasVisible 
+      end
     end
   end
 

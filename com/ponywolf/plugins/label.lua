@@ -37,10 +37,7 @@ local function strokedText(options)
   local text = display.newText(options)
   text:setFillColor(unpack(color))
 
-  -- make a bounding box based on the default text
-  local width = math.max(text.contentWidth, options.width or 0)
-
-  --  create snapshot to hold text/strokes
+  --  create group to hold text/strokes
   local stroked = display.newGroup()
   if parent then parent:insert(stroked) end
   stroked:insert(text)
@@ -53,7 +50,7 @@ local function strokedText(options)
       if not (i == 0 and j == 0) then --skip middle
         options.x,options.y = i,j
         local stroke = display.newText(options)
-        stroke:setTextColor(decodeTiledColor(strokeColor))
+        stroke:setFillColor(decodeTiledColor(strokeColor))
         stroked:insert(stroke)
       end
     end
@@ -84,6 +81,7 @@ function M.new(instance)
 
   -- set defaults
   local text = tiledObj.text or " "
+  text = text:gsub("|","\n")
   local font = tiledObj.font or native.systemFont
   local size = tiledObj.size or 20
   local stroked = tiledObj.stroked

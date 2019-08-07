@@ -73,8 +73,8 @@ function M.snap(object, alignment, margin)
   alignment = string.lower(alignment or "center")
   margin = margin or 0
 
-	local w = object.xMax or object.contentWidth
-	local h = object.yMax or object.contentHeight
+	local w = object.designedWidth or object.contentWidth
+	local h = object.designedHeight or object.contentHeight
 
   if string.find(alignment,"center") then
     --object:translate(centerX - x, centerY - y)

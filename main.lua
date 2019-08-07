@@ -14,14 +14,29 @@ https://docs.coronalabs.com/api/library/composer/index.html
 
 local composer = require "composer"
 
--- Removes status bar on iOS
-display.setStatusBar( display.HiddenStatusBar ) 
+-- are we running on a simulator?
+local isSimulator = "simulator" == system.getInfo( "environment" )
+local isMobile = ("ios" == system.getInfo("platform")) or ("android" == system.getInfo("platform"))
+local isAndroid = "android" == system.getInfo("platform")
+local isiOS = system.getInfo("platform") == "ios"
+local isSteam = ("win32" == system.getInfo("platform")) or (system.getInfo("platform") == "macos")
+local isKindle = system.getInfo("manufacturer") == "Amazon"
 
--- Removes bottom bar on Android 
-if system.getInfo( "androidApiLevel" ) and system.getInfo( "androidApiLevel" ) < 19 then
-  native.setProperty( "androidSystemUiVisibility", "lowProfile" )
-else
-  native.setProperty( "androidSystemUiVisibility", "immersiveSticky" ) 
+
+-- Removes bottom bar on Android
+if isAndroid then
+  if system.getInfo( "androidApiLevel" ) and system.getInfo( "androidApiLevel" ) < 19 then
+    native.setProperty( "androidSystemUiVisibility", "lowProfile" )
+  else
+    native.setProperty( "androidSystemUiVisibility", "immersiveSticky" ) 
+  end
+end
+
+if isiOS then -- don't turn off background music, remove status bar on iOS
+  display.setStatusBar( display.HiddenStatusBar ) 
+  native.setProperty( "prefersHomeIndicatorAutoHidden", true )
+  native.setProperty( "preferredScreenEdgesDeferringSystemGestures", true )
+  audio.setSessionProperty(audio.MixMode, audio.AmbientMixMode)
 end
 
 -- reserve audio for menu and bgsound
@@ -31,9 +46,6 @@ snd:batch("blip", "laser", "explode", "jump", "thud", "coin")
 snd:loadMusic("snd/venus.wav")
 snd:playMusic()
 
--- are we running on a simulator?
-local isSimulator = "simulator" == system.getInfo( "environment" )
-local isMobile = ("ios" == system.getInfo("platform")) or ("android" == system.getInfo("platform"))
 
 -- if we are load our visual monitor that let's a press of the "F"
 -- key show our frame rate and memory usage, "P" to show physics

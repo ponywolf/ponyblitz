@@ -62,7 +62,8 @@ local function update(event)
     " Texture Memory: ".. tostring(int(system.getInfo("textureMemoryUsed") * 0.0001) * 0.01) .. "mb " ..
     " System Memory: ".. tostring(int(collectgarbage("count") * 0.1) * 0.01) .. "mb " ..
     " Stage Objects: " .. tostring(int(deepNumChildren(display.getCurrentStage()))) ..
-    " enterFrame Listeners: " .. tostring(int(#Runtime._functionListeners.enterFrame))
+    " enterFrame Listeners: " .. tostring(int(#Runtime._functionListeners.enterFrame)) ..
+    " transitions: " .. tostring(int(#transition._transitionTable)) 
   end
   M.group:toFront()
   M.updateCount = M.updateCount + 1

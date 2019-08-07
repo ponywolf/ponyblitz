@@ -30,7 +30,7 @@ function M.newButton(radius, key)
       instance.xScale, instance.yScale = instance.xScale * 0.95, instance.yScale * 0.95
       local keyEvent = {name = "key", phase = "down", keyName = key or "none"}
       Runtime:dispatchEvent(keyEvent)
-    elseif phase=="ended" or phase == "canceled" then
+    elseif phase=="ended" or phase == "cancelled" then
       if event.id then stage:setFocus(nil, event.id) end
       instance.xScale, instance.yScale = instance._xScale, instance._yScale
       local keyEvent = {name = "key", phase = "up", keyName = key or "none"}

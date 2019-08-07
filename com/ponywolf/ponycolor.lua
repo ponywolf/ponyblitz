@@ -10,11 +10,11 @@ function M.hex2rgb(hex)
   end
   hex = hex:gsub("#","")
   if string.len(hex) == 3 then
-    return hex2float(hex,1,1) * 17, hex2float(hex,2,2) * 17, hex2float(hex,3,3) * 17
+    return { hex2float(hex,1,1) * 17, hex2float(hex,2,2) * 17, hex2float(hex,3,3) * 17 }
   elseif string.len(hex) == 6 then
-    return hex2float(hex,1,2), hex2float(hex,3,4), hex2float(hex,5,6), 1
+    return { hex2float(hex,1,2), hex2float(hex,3,4), hex2float(hex,5,6), 1 }
   elseif string.len(hex) == 8 then
-    return hex2float(hex,1,2), hex2float(hex,3,4), hex2float(hex,5,6), hex2float(hex,7,8)
+    return { hex2float(hex,1,2), hex2float(hex,3,4), hex2float(hex,5,6), hex2float(hex,7,8) }
   end
 end
 
@@ -41,41 +41,6 @@ function M.hls2rgb(h, l, s, a)
   end
   return hue2rgb(p, q, h + third), hue2rgb(p, q, h), hue2rgb(p, q, h - third), a or 1
 end
-
-local function split(line, separator)
-  line = line or ""
-  separator = separator or "\t"  
-  local items = {}
-  local i = 1
-  for str in string.gmatch(line, "([^"..separator.."]+)") do
-    items[i] = str
-    i = i + 1
-  end
-  return items
-end
-
-function M.loadGimp(filename, index)
-  local palette = {}
-  local path = system.pathForFile( filename, system.ResourceDirectory )
-  local file, errorString = io.open( path, "r" )
-  if not file then
-    error( "File error: " .. errorString )
-  else
-    local i = 1
-    for line in file:lines() do
-      local data = split(line)
-      if #data > 3 then
-        print ("Loading color...", data[4])
-        palette[index and i or data[4]] = { data[1]/255, data[2]/255, data[3]/255 }
-        i = i + 1 
-      end
-    end
-    io.close( file )
-  end
-  file = nil
-  return palette
-end
-
 
 M.db32 = { black = "#000000",
   midnight = "#222034",

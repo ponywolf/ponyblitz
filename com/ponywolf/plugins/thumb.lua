@@ -32,6 +32,8 @@ function M.new(instance)
   end
 
   function instance:set( value )
+    value = value or 0.0
+    value = math.min(1,math.max(0,value))
     if horizontal then 
       self.x = min + ((max - min) * value)
     else
@@ -46,6 +48,7 @@ function M.new(instance)
     else
       value = 1 - (self.y - min) / (max - min)
     end
+    value = math.min(1,math.max(0,value))
     return value
   end
 

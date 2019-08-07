@@ -21,13 +21,14 @@ end
 function M.new(instance)
 
   if not instance then error("ERROR: Expected display object") end
-  local parent = instance.parent
+  local parent = instance.parent or {}
 
   -- store inital scale
   instance._xScale, instance._yScale = instance.xScale, instance.yScale
   instance._rotation = instance.rotation 
   local toggleImage = false
   local toggleText = false
+  local map = parent.parent
 
   -- are we an image toggle?
   if instance.toggleImage then 
@@ -44,7 +45,7 @@ function M.new(instance)
     end
   end
 
-  -- are we an text toggle?
+  -- are we a text toggle?
   if instance.text then
     instance.keepInstance = true
     instance.label = label.new(instance)
@@ -58,7 +59,8 @@ function M.new(instance)
 
   -- mouse down/over code here
   local function sizeButton(scale)
-    if instance.label then 
+    if instance.label then
+--      instance.label.x, instance.label.y = instance.x, instance.y
       instance.label.xScale, instance.label.yScale = scale or 1, scale or 1
     end
     instance.xScale, instance.yScale = instance._xScale * (scale or 1), instance._yScale * (scale or 1)
@@ -121,32 +123,46 @@ function M.new(instance)
 
   -- touch code
   function instance:touch(event)
-    local phase = event.phase
-    local name = event.name
+    local phase, name = event.phase, event.name
+    if self.enabled == false then return false end
     -- press in animation
-    if phase=="began" then
+    if phase == "began" then
       if event.id then stage:setFocus(event.target, event.id) end
       self.isFocus = true
       sizeButton(0.95)
+      -- set map if exists
+      if map and map.set then
+        map:set()
+      end
       -- send event
-      local uiEvent = {name = "ui", phase = "pressed", target = self, tag = self.tag, buttonName = self.name or "none"}
+      local uiEvent = {name = "ui", phase = "pressed", target = self, map = self.parent.parent, tag = self.tag, buttonName = self.name or "none"}
       Runtime:dispatchEvent(uiEvent)
     elseif phase == "moved" and self.isFocus then
-      if inBounds(event, self) then -- inside
+      if inBounds(event, self) and not self.isCancelled then -- inside
         sizeButton(0.95)
       else -- outside
+        if (not self.noFollow) and map and map.touch then
+          self.isCancelled = true
+          event.phase = "follow"
+          map:touch(event)
+        end
         sizeButton()    
       end        
       -- release animation
-    elseif phase == "ended" or phase == "canceled" then
+    elseif phase == "ended" or phase == "cancelled" then
       if event.id then stage:setFocus(nil, event.id) end
-      self.isFocus = false
-      if inBounds(event, self) then -- inside
-        local uiEvent = {name = "ui", phase = "released", target = self, tag = self.tag, buttonName = self.name or "none"}
+      if inBounds(event, self) and not self.isCancelled then -- inside
+        local uiEvent = {name = "ui", phase = "released", target = self,  map = self.parent.parent, tag = self.tag, buttonName = self.name or "none"}
         uiEvent.toggled = self:toggle()
         Runtime:dispatchEvent(uiEvent)
+      else -- outside
+        if map and map.touch then 
+          map:touch(event)
+        end
       end        
-      sizeButton()    
+      sizeButton()
+      self.isFocus = false
+      self.isCancelled = false
       -- look for mouse events in our content bounds
     elseif name == "mouse" and not self.isFocus then -- mouse overs
       if inBounds(event, self) then -- inside
@@ -161,7 +177,7 @@ function M.new(instance)
     end
     return true  
   end
-  
+
   -- for mouse interfaces only
   local function mouseOver(event)
     instance:touch(event)
@@ -170,7 +186,7 @@ function M.new(instance)
   function instance:finalize()
     Runtime:removeEventListener("mouse", mouseOver)
   end
-  
+
   if not isMobile then 
     Runtime:addEventListener("mouse", mouseOver)    
   end
