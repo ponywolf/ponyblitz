@@ -1,6 +1,6 @@
 -- Requirements
 local composer = require "composer"
-local libworld = require "scene.game.lib.world"
+local libworld = require "scene.game.lib.pixelWorld"
 local ponytiled = require "com.ponywolf.ponytiled"
 local fx = require "com.ponywolf.ponyfx"
 local snap = require "com.ponywolf.snap"
@@ -15,12 +15,10 @@ function scene:create( event )
   
  
   -- create an empty world
---  world = libworld.new()
---  world:reset()
---  view:insert(world)
+  world = libworld.new()
+  world:reset()
+  view:insert(world)
 	
-	-- snap world to square
-	--world:centerObj(rect) 
  	
 	physics.start()
 	
@@ -28,9 +26,11 @@ function scene:create( event )
   local filename = system.pathForFile("scene/game/map/test.json")
   local data = json.decodeFile(filename)
   map = ponytiled.new(data, "scene/game/map")
-  map:centerObject("camera")
+  map.xScale, map.yScale = 0.25,0.25
+  map:centerAnchor()
+  --map:centerObject("camera")
 	map:extend("joint")
-	view:insert(map)
+	world.group:insert(map)
 	
 
   -- create an HUD group

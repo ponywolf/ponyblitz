@@ -5,13 +5,13 @@ local M = {}
 local centerX, centerY = display.contentCenterX, display.contentCenterY
 
 function M.new(pixelScale)
-  pixelScale = pixelScale or 2
+  pixelScale = pixelScale or 3
   local width = math.floor(display.actualContentWidth / pixelScale)
   local height = math.floor(display.actualContentHeight / pixelScale)
   display.setDefault( "magTextureFilter", "nearest" )
 
   local instance = display.newSnapshot(width, height)
-  instance.xScale, instance.yScale  = pixelScale, pixelScale
+  instance.xScale, instance.yScale = pixelScale, pixelScale
 
   function instance:center()
     -- centers the world on screen
@@ -20,7 +20,7 @@ function M.new(pixelScale)
 
   function instance:reset()
     -- places the world on screen at 0,0
-    instance.x, instance.y = 0,0
+    instance.x, instance.y = display.actualContentWidth/2, display.actualContentHeight/2
   end
 
   function instance:centerObj(obj)
@@ -37,8 +37,8 @@ function M.new(pixelScale)
 
   local function enterFrame(event)
     instance.fill.effect = "filter.colorChannelOffset"
-    instance.fill.effect.xTexels = 0.5
-    instance.fill.effect.yTexels = 0.5
+    instance.fill.effect.xTexels = 1.1
+    instance.fill.effect.yTexels = 1.1
     instance:invalidate()
   end
 

@@ -8,11 +8,14 @@ This is a lightweight skeleton that is intended to make it a bit easier to get a
 It also includes a pre-made HUD layer for score and a few open source libraries that have been released in various places by ponywolf.
 
 * joyKey - axis to keystroke
-* pex - particle loader
 * ponycolor - simple color conversion
 * ponymenu - text menu system
 * snap - displayObject alignment
 * ponystroke - stroked text
 * ponytiled - tiled map loader
+* ponyfx - various quick transition effects
 * visualMonitor - frame rate, displayObject counter
 * vjoy - virtual joystick, button lib
+* light - lighting system from Darkest Tower
+* scanlines - generated scanlines
+* pixelWorld - a low-rez render via snapshot
