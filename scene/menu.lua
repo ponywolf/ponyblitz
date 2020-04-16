@@ -42,7 +42,7 @@ function scene:create( event )
   end
 
   -- create a start menu
-  menu = ponymenu.new( onMenu, { align = "center", font = "RobotoMono.ttf", fontSize = 32 })
+  menu = ponymenu.new( onMenu, { align = "center", font = "font/Kenney Pixel Square.ttf", fontSize = 32 })
   menu:add("Play")
   menu:add("Fullscreen")
   menu:add("Sound Off,Sound On")

@@ -150,8 +150,12 @@ function M.new(listener, options)
     end
 
     if phase == "ended" then
-      Runtime:dispatchEvent( { name = "key", phase = "up", keyName = "enter" } )
+      local item = instance:choose() 
+      if listener then
+        listener( { phase = "selected", name = item } )
+      end
     end
+    return true
   end
 
   local function mouse(event)
@@ -175,6 +179,7 @@ function M.new(listener, options)
         end
       end
     end
+    return true
   end
 
   function instance:finalize()
