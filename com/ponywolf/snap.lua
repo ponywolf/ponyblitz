@@ -13,6 +13,7 @@
 -- 0.1 - Initial release
 -- 0.2 - Lots of re-org
 -- 0.3 - Added align
+-- 0.4 - Safe snap
 --
 -- Snap display objects for HUD purposes
 --
@@ -23,28 +24,41 @@
 
 local M = {}
 
-local width 	= display.contentWidth
-local height 	= display.contentHeight
+local width = display.actualContentWidth
+local height = display.actualContentHeight
 local originX = display.screenOriginX
 local originY = display.screenOriginY
 local centerX = display.contentCenterX
 local centerY = display.contentCenterY
 
+local safeOriginX = display.safeScreenOriginX
+local safeOriginY = display.safeScreenOriginY
+local safeWidth = display.safeActualContentWidth
+local safeHeight = display.safeActualContentHeight
+
 -- Called when the app's view has been resized
-local function onResize( event )
-  width = display.contentWidth
-  height = display.contentHeight
-  originX = display.screenOriginX
-  originY = display.screenOriginY
+local function onResize(event)
+--  width = display.contentWidth
+--  height = display.contentHeight
+--  originX = display.screenOriginX
+--  originY = display.screenOriginY
   centerX = display.contentCenterX
   centerY = display.contentCenterY
+  originX = display.safeScreenOriginX
+  originY = display.safeScreenOriginY
+  width = display.actualContentWidth
+  height = display.actualContentHeight
+  safeOriginX = display.safeScreenOriginX
+  safeOriginY = display.safeScreenOriginY
+  safeWidth = display.safeActualContentWidth 
+  safeHeight = display.safeActualContentHeight
 end
 
 -- Add the "resize" event listener
-Runtime:addEventListener( "resize", onResize )
+Runtime:addEventListener("resize", onResize)
 
 local function getLocalCenter(object)
-    local bounds = object.contentBounds
+  local bounds = object.contentBounds
   if bounds then 
     return (bounds.xMin + bounds.xMax)/2, (bounds.yMin + bounds.yMax)/2
   else
@@ -53,7 +67,7 @@ local function getLocalCenter(object)
 end
 
 local function getLocalAnchor(object)
-  local x,y = getLocalCenter(object)
+  local x, y = getLocalCenter(object)
   local bounds = object.contentBounds
   return (bounds.xMin - x) / (bounds.xMin - bounds.xMax), (bounds.yMin - y) / (bounds.yMin - bounds.yMax)
 end
@@ -73,27 +87,65 @@ function M.snap(object, alignment, margin)
   alignment = string.lower(alignment or "center")
   margin = margin or 0
 
-	local w = object.designedWidth or object.contentWidth
-	local h = object.designedHeight or object.contentHeight
+  local w = object.designedWidth or object.contentWidth
+  local h = object.designedHeight or object.contentHeight
 
   if string.find(alignment,"center") then
     --object:translate(centerX - x, centerY - y)
-		object.x, object.y = centerX, centerY
+    object.x, object.y = centerX, centerY
   end
   if string.find(alignment,"top") or string.find(alignment,"upper") then
     object.y = originY + margin + (anchorY * h)
   end
   if string.find(alignment,"bottom") or string.find(alignment,"lower") then
-    object.y = -originY + height - margin - (anchorY * h)
+    object.y = height - margin - (anchorY * h) + originY
   end
   if string.find(alignment,"left") then
     object.x = originX + margin + (anchorX * w)
   end
   if string.find(alignment,"right") then
-    object.x = -originX + width - margin - (anchorX * w)
+    object.x = width - margin - (anchorX * w) + originX
   end
-  
-  return object.x, object.y -- new x,y if you need it
+
+  return object.x, object.y -- new x, y if you need it
+end
+
+function M.safe(object, alignment, margin)
+  if not object or not object.x or not object.y then return nil end
+  local x, y = getLocalCenter(object) 
+  local anchorX, anchorY
+
+  if object.numChildren then
+    anchorX, anchorY = getLocalAnchor(object)
+  else   
+    anchorX, anchorY = object.anchorX, object.anchorY
+  end
+
+  -- Let's do it!
+  alignment = string.lower(alignment or "center")
+  margin = margin or 0
+
+  local w = object.designedWidth or object.contentWidth
+  local h = object.designedHeight or object.contentHeight
+
+  if string.find(alignment,"center") then
+    --object:translate(centerX - x, centerY - y)
+    object.x, object.y = centerX, centerY
+  end
+  if string.find(alignment,"top") or string.find(alignment,"upper") then
+    object.y = margin + (anchorY * h) + safeOriginY
+  end
+  if string.find(alignment,"bottom") or string.find(alignment,"lower") then
+    object.y = safeHeight - margin - (anchorY * h) + safeOriginY
+  end
+  if string.find(alignment,"left") then
+    object.x = margin + (anchorX * w) + safeOriginX
+  end
+  if string.find(alignment,"right") then
+    object.x = safeWidth - margin - (anchorX * w) + safeOriginX
+  end
+
+  return object.x, object.y -- new x, y if you need it
 end
 
 function M.align(object, reference, alignment, margin)

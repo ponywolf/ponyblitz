@@ -83,7 +83,6 @@ function M:getVolume()
   return self.volume
 end
 
-
 function M:toggleVolume()
   if M.volume > 0 then 
     defaultVolume = M.volume
@@ -125,6 +124,9 @@ function M:playMusic(options)
   options.channel=M.musicChannel
   if M.music then
     audio.play(M.music, options)
+    M.musicPaused = false
+  else 
+    print ("WARNING: No music to play")
   end
 end
 
@@ -139,23 +141,20 @@ function M:pauseMusic()
 end
 
 function M:resumeMusic()
-  audio.resume(M.musicChannel)
-  M.musicPaused = false
+  if M.music then
+    audio.resume(M.musicChannel)
+    M.musicPaused = false
+  else 
+    print ("WARNING: No music to resume")
+  end
 end
 
 function M:toggleMusic()
   if M.musicPaused then
     M:resumeMusic()
-  elseif  M.musicPaused == nil then
-    M:playMusic()
   else
     M:pauseMusic()
   end
-  M.musicPaused = not M.musicPaused
-end
-
-function M:resumeMusic()
-  audio.resume(M.musicChannel)
 end
 
 function M:stopMusic(time)

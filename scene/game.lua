@@ -21,8 +21,7 @@ function scene:create( event )
 	
 	-- snap world to square
 	--world:centerObj(rect) 
- 
-	
+ 	
 	physics.start()
 	
   -- or load a tiled map
@@ -36,7 +35,7 @@ function scene:create( event )
 
   -- create an HUD group
   hud = display.newGroup()
-	scene.score = display.newText{ parent=hud, text = "HUD Group", font = "RobotoMono.ttf", fontSize = "32" }
+	scene.score = display.newText{ parent=hud, text = "HUD Group", font = "font/Kenney Future Narrow.ttf", fontSize = "32" }
   snap(scene.score, "topcenter", 16)
 	view:insert(hud)
 

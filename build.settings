@@ -19,12 +19,10 @@ settings = {
 --  "landscapeRight" device in the horizontal position with the home button at the right
 --  "landscapeLeft" device in the horizontal position with the home button at the left
 
---  splashScreen = {
---    enable = false
---  },
 
   orientation = {
-    -- Landscape
+		-- Supported values for orientation:
+		-- portrait, portraitUpsideDown, landscapeLeft, landscapeRight
     default = "landscapeRight",
     supported = { "landscapeRight", "landscapeLeft"}
   },
@@ -75,11 +73,10 @@ settings = {
 
     -- Exclude all files at paths
     all = { "*art/*", "README.md" },
-    android = { "*.xcassets*", "*.storyboardc*" },
-		web = { "Icon-*dpi.png", "default*.png", "*.xcassets*", "*.storyboardc*" },
-		ios = { "Icon-*dpi.png" },
-		win32 = { "Icon*.png", "default*.png", "*.xcassets*", "*.storyboardc*" },
-		macos = { "Icon*.png", "default*.png", "*.xcassets*", "*.storyboardc*" },
+    android = { "*.xcassets*", "*.storyboardc*",  },
+		ios = { "*AndroidResources*" },
+    web = { "*.xcassets*", "*.storyboardc*", "*AndroidResources*" },
+		win32 = { "*.xcassets*", "*.storyboardc*", "*AndroidResources*" },
+		macos = { "*.xcassets*", "*.storyboardc*", "*AndroidResources*" },
   },
-
 }

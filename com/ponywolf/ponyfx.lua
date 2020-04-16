@@ -4,6 +4,7 @@ local M = {}
 
 local function lenSqr(dx,dy,dz) return (dx * dx + dy * dy + dz * dz) end
 
+-- Flash object
 local function offScreen(object)
   local bounds = object.contentBounds
   if not bounds then return false end
@@ -64,6 +65,7 @@ function M.screenFlash(color, blendMode, time)
   transition.to(overlay, {alpha = 0, time = time or 500, transition = easing.outQuad, onComplete=destroy})
 end
 
+-- Screen Fades
 function M.fadeOut(onComplete, time, delay)
   local color = { 0, 0, 0, 1 }
   local overlay = display.newRect(
@@ -96,8 +98,22 @@ function M.fadeIn(onComplete, time, delay)
   transition.to(overlay, {alpha = 0, time = time or 500, delay = delay or 1, transition = easing.outQuad, onComplete=destroy})
 end
 
--- Impact fx function
+function M.dim(percent)
+  local dim = display.newRect(display.contentCenterX,display.contentCenterY,display.actualContentWidth*2,display.actualContentHeight*2)
+  dim:setFillColor(0,0,0,1)
+  dim.alpha = percent or 0.5
+  dim.isHitTestable = true
+  dim.name = "dim"
+  transition.from(dim, { time = 166, alpha = 0 })
+  local function touch(event)
+    --print("Clicked Dim", event.phase)
+    return true
+  end
+  dim:addEventListener("touch", touch)
+  return dim
+end 
 
+-- Impact fx function
 function M.impact(object, intensity, time)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -111,7 +127,6 @@ function M.impact(object, intensity, time)
 end
 
 -- Bounce fx function
-
 function M.bounce(object, intensity, time)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -124,30 +139,109 @@ function M.bounce(object, intensity, time)
   transition.from(object, i)
 end
 
--- Breath fx function
-
-function M.breath(object, intensity, time, rnd)
-  if not object.contentBounds then
+-- Bounce 3d fx function
+function M.bounce3D(object, intensity, time)
+  if not (object and object.contentBounds) then
     print("WARNING: Object not found")
     return false
+  end
+  object._yScale = object.yScale
+  object._xScale = object.xScale
+  intensity = intensity or 0.1
+  time = time or 500
+
+  local function onCancel() object.xScale, object.yScale = object._xScale, object._yScale end
+
+  local i = { 
+    yScale=object._yScale + intensity,
+    xScale=object._xScale + intensity,
+    transition=easing.outBounce,
+    time=time, iterations=-1,
+    onCancel = onCancel
+  }
+  transition.from(object, i)
+end
+
+-- Breath fx function
+function M.breath(object, intensity, time, rnd)
+  if not (object and object.contentBounds) then
+    print("WARNING: Object not found")
+    return false
+  end
+  
+  if object._isBreath then
+    print("WARNING: Object already is breathing")
   end
 
   intensity = 1 - (intensity or 0.05)
   time = time or 250
   time = time + (rnd and math.random(rnd) or 0)
   local w,h,i,e = object.width, object.height, {}, {}
+  local function inhale() object.width, object.height = w, h; transition.to(object, i) end
+  local function exhale() object.width, object.height = w, h; transition.to(object, e) end
+
+  local function onCancel() 
+    object.width, object.height = w, h 
+    object._isBreath = nil
+  end
+
+  -- set transitions
+  i = { time = time, width = w * intensity, height = h / intensity, transtion = easing.inOutExpo, onComplete = exhale, onCancel = onCancel }
+  e = { time = time, width = w / intensity, height = h * intensity, transtion = easing.inOutExpo, onComplete = inhale, onCancel = onCancel }
+
+  object._isBreath = true
+  inhale()
+end
+
+-- Float fx function
+function M.float(object, intensity, time, rnd)
+  if not (object and object.contentBounds) then
+    print("WARNING: Object not found")
+    return false
+  end
+
+  intensity = intensity or 0.025
+  time = time or 1000
+  time = time + (rnd and math.random(rnd) or 0)
+  local x, y,i,e = object.x, object.y, {}, {}
   local function inhale() transition.to(object, i) end
   local function exhale() transition.to(object, e) end
 
+  local function onCancel() object.x, object.y = x, y end
+
   -- set transitions
-  i = { time = time, width = w * intensity, height = h / intensity, transtion = easing.inOutExpo, onComplete = exhale }
-  e = { time = time, width = w / intensity, height = h * intensity, transtion = easing.inOutExpo, onComplete = inhale }
+  i = { time = time, y = y + intensity * object.height, transtion = easing.outExpo, onComplete = exhale, onCancel = onCancel }
+  e = { time = time, y = y - intensity * object.height, transtion = easing.outExpo, onComplete = inhale, onCancel = onCancel }
 
   inhale()
 end
 
--- Shake object function
+-- Sway
+function M.sway(object, intensity, time, rnd)
+  if not object.contentBounds then
+    print("WARNING: Object not found")
+    return false
+  end
 
+  intensity = intensity or 0.1
+  time = time or 1000
+  time = time + (rnd and math.random(rnd) or 0)
+  local x1,y1 = object.path.x1, object.path.y1
+  local x4,y4 = object.path.x4, object.path.y4
+  local size = object.height
+  local i,e = {}, {}
+  local function inhale() transition.to(object.path, i) end
+  local function exhale() transition.to(object.path, e) end
+
+  -- set transitions
+  i = { time = time, x1 = x1 + intensity * size, x4 = x4 + intensity * size, transtion = easing.inOutExpo, onComplete = exhale }
+  e = { time = time, x1 = x1 - intensity * size, x4 = x4 - intensity * size, transtion = easing.inOutExpo, onComplete = inhale }
+
+  inhale()
+end
+
+
+-- Shake object function
 function M.shake(object, frames, intensity)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -180,8 +274,7 @@ function M.shake(object, frames, intensity)
   Runtime:addEventListener("enterFrame", shake)
 end
 
--- Object Trails
-
+-- object Trails
 function M.newTrail(object, options)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -274,6 +367,7 @@ function M.newTrail(object, options)
   return trail
 end
 
+-- Footprints
 function M.newFootprint(object, options)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -358,7 +452,6 @@ function M.newFootprint(object, options)
 end
 
 -- lightning
-
 function M.newBolt(x1, y1, x2, y2, options)
   options = options or {}
   x1, y1 = x1 or 0, y1 or 0
@@ -392,10 +485,7 @@ function M.newBolt(x1, y1, x2, y2, options)
   return bolt
 end
 
-
-
 -- Spinning streaks for menus and such
-
 function M.newStreak(options)
 
   options = options or {}
@@ -438,45 +528,6 @@ function M.newStreak(options)
   streaks:addEventListener("finalize")
   streaks:start()
   return streaks
-end
-
-function M.comic(text, x, y)
-  local stroke = require "com.ponywolf.ponystroke"
-  local default = {
-    text = text or "Critical Hit!",
-    x = x or display.contentCenterX,
-    y = y or 192,
-    --width = display.contentWidth * 0.8,
-    font = "Bangers-Regular.ttf",
-    fontSize = 99,
-    align = "center",
-    color = {0.9,0.4,0.35,1},
-    strokeColor = {1,1,1,1},
-    strokeWidth = 2
-  }
-  local comicText = stroke.newText(default)
-  comicText.rotation = math.random(12) - 6
-  comicText.xScale, comicText.yScale = 3.0, 3.0
-  
-  local function remove()
-    display.remove(comicText.raw)
-    comicText = nil
-  end
-  
-  transition.to(comicText, { 
-      xScale = 0.75, yScale = 0.75,
-      transition=easing.outElastic,
-      time=750,
-    })
-  
-  transition.to(comicText, { 
-      alpha = 0,
-      delay= 750,
-      time=333,
-      onComplete = remove,
-    })  
-  
-  return comicText.raw
 end
 
 return M
