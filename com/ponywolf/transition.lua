@@ -2,7 +2,7 @@ transition.__cancel = transition.cancel
 
 function transition.cancel(param)
   if param == nil then
-    print("WARNING: Transtion canceling all transitions")
+    print("WARNING: Transition cancelling all transitions")
     transition.__cancel()
   else
     transition.__cancel(param)
