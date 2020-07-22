@@ -1,15 +1,26 @@
--- Requirements
-local composer = require "composer"
+-- Scenes: scene template
+
+local scenes = require "scenes"
+local scene = {}
+
+-- set a more friendly name, or required filename is used
+-- can be overwritten on new() with name = "instanceName"
+scene.name = "menu"
+
+-- variables local to scene
+local menu
+
+-- requirements
 local snap = require "com.ponywolf.snap"
 local ponymenu = require "com.ponywolf.ponymenu"
 local snd = require "com.ponywolf.ponysound"
 local fx = require "com.ponywolf.ponyfx"
 
--- Variables local to scene
-local scene = composer.newScene()
-local menu
+-- preload game scene
+local game = scenes.new("scene.game")
 
-function scene:create( event )
+function scene:create(event)
+  local options = event.options or {}
   local view = self.view -- add display objects to this group
 
   -- menu listener
@@ -19,22 +30,25 @@ function scene:create( event )
     if phase == "selected" then
       snd:play("blip")
       if name == "play" then
-        fx.fadeOut(function() composer.gotoScene("scene.game") end)
+        local function go()
+          scenes.show("game", {transition = "fade", time = 1000 })
+        end
+        scenes.hide("menu", {transition = "fade", time = 1000, onComplete = go })
       elseif name == "soundon" then
         snd:toggleVolume()
       elseif name == "soundoff" then
-        snd:toggleVolume()		
+        snd:toggleVolume()
       elseif name == "musicon" then
         snd:pauseMusic()
       elseif name == "musicoff" then
         snd:resumeMusic()
       elseif name == "fullscreen" then
-        display.fullscreen = not display.fullscreen 
+        display.fullscreen = not display.fullscreen
         if display.fullscreen then
           native.setProperty("windowMode", "fullscreen")
         else
           native.setProperty("windowMode", "normal")
-        end  			
+        end
       elseif name == "quit" then
         native.requestExit()
       end
@@ -50,7 +64,6 @@ function scene:create( event )
   menu:add("Quit")
 
   view:insert(menu)
-  snap(menu)
 
   -- keys to toggle volume and music
   local function key(event)
@@ -66,39 +79,73 @@ function scene:create( event )
       end
     end
   end
-  Runtime:addEventListener( "key", key ) 
+  Runtime:addEventListener( "key", key )
 end
 
-local function enterFrame(event)
-  local elapsed = event.time
+function scene:resize(event)
+  -- place all your graphics and images here
+  snap(menu)
+  print("Resized scene", self.name)
 
 end
 
-function scene:show( event )
-  local phase = event.phase
-  if ( phase == "will" ) then
-    Runtime:addEventListener("enterFrame", enterFrame)
-  elseif ( phase == "did" ) then
+function scene:show(event)
+  local options = event.options or {}
+  -- automatically calls resize(), start timers, game loop etc.
+  if event.phase == "began" then
+    print("Began showing scene", self.name)
 
+  elseif event.phase == "ended" then
+    print("Finished showing scene", self.name)
+    -- you could resume here
+    self:resume()
   end
 end
 
-function scene:hide( event )
-  local phase = event.phase
-  if ( phase == "will" ) then
+function scene:pause()
+  -- add things here that might need to pause, must be called manually
+  scene.paused = true
+end
 
-  elseif ( phase == "did" ) then
-    Runtime:removeEventListener("enterFrame", enterFrame)
+function scene:resume()
+  -- restart things here that might needed to pause, must be called manually
+  scene.paused = false
+end
+
+function scene:enterFrame(event)
+  -- called every frame
+
+  if not scene.view.isVisible then return end
+  -- if scene is hidden don't do these things
+
+  if scene.paused then return end
+  -- if scene paused don't do these things
+end
+
+function scene:hide(event)
+  local options = event.options or {}
+  -- called when scene gets hidden
+  if event.phase == "began" then
+    print("Began hiding scene", self.name)
+
+  elseif event.phase == "ended" then
+    print("Finished hiding scene", self.name)
+    -- you could pause here to save resources
+    self:pause()
   end
 end
 
-function scene:destroy( event )
+function scene:finalize(event)
+  -- optional, gets called when scene view gets removed
+  -- use scenes.remove() to safely start the process
+  print("Scene finalized", self.name)
 
 end
 
-scene:addEventListener("create")
-scene:addEventListener("show")
-scene:addEventListener("hide")
-scene:addEventListener("destroy")
+function scene:destroy()
+  -- optional, gets called before module set to nil
+  print("Scene destroyed", self.name)
+
+end
 
 return scene
