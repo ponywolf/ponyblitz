@@ -4,7 +4,6 @@ local M = {}
 
 local function lenSqr(dx,dy,dz) return (dx * dx + dy * dy + dz * dz) end
 
--- Flash object
 local function offScreen(object)
   local bounds = object.contentBounds
   if not bounds then return false end
@@ -27,6 +26,7 @@ function M.flash(object, frames, listener)
     object.fill.effect.darkColor = { 1,1,1,1 }
     object.fill.effect.lightColor = { 1,1,1,1 }
   end
+
   local function revert()
     object.fill.effect = nil
   end
@@ -34,7 +34,7 @@ function M.flash(object, frames, listener)
   object._flashFrames = math.min(180, (frames or 30) + (object._flashFrames or 0))
   local function cycle()
     if (object._flashFrames > 0) and object.contentBounds then -- flash it
-      if object._flashFrames % 2 == 1 then
+      if object._flashFrames % 4 == 1 or object._flashFrames % 4 == 2 then
         revert()
       else
         flash()
@@ -65,7 +65,6 @@ function M.screenFlash(color, blendMode, time)
   transition.to(overlay, {alpha = 0, time = time or 500, transition = easing.outQuad, onComplete=destroy})
 end
 
--- Screen Fades
 function M.fadeOut(onComplete, time, delay)
   local color = { 0, 0, 0, 1 }
   local overlay = display.newRect(
@@ -113,9 +112,52 @@ function M.dim(percent)
   return dim
 end 
 
+function M.irisOut(onComplete, x, y, time, delay)
+  local color = { 0, 0, 0, 1 }
+  x,y = x or display.contentCenterX, y or display.contentCenterY
+  local wide = display.actualContentHeight > display.actualContentWidth and display.actualContentHeight or display.actualContentWidth
+  local r = 128
+  local scale = wide/r + 0.15
+  local overlay = display.newCircle(x,y,r)
+  overlay:setStrokeColor(unpack(color))
+  overlay:setFillColor(0,0,0,0)
+  overlay.strokeWidth = 0
+  overlay.xScale, overlay.yScale = scale, scale
+  overlay:setFillColor(0,0,0,0)
+
+  overlay.alpha = 1
+  local function destroy()
+    if onComplete then onComplete() end
+    display.remove(overlay)
+  end
+  transition.to(overlay, {strokeWidth = 255, time = time or 500, delay = delay or 0, transition = easing.outQuad, onCancel = destroy, onComplete=destroy})
+end
+
+function M.irisIn(onComplete, x,y, time, delay)
+  local color = { 0, 0, 0, 1 }
+  x,y = x or display.contentCenterX, y or display.contentCenterY
+  local wide = display.actualContentHeight > display.actualContentWidth and display.actualContentHeight or display.actualContentWidth
+  local r = 128
+  local scale = wide/r + 0.15
+  local overlay = display.newCircle(x,y,r)
+  overlay:setStrokeColor(unpack(color))
+  overlay:setFillColor(0,0,0,0)
+  overlay.strokeWidth = 255
+  overlay.xScale, overlay.yScale = scale, scale
+
+  overlay.alpha = 1
+  local function destroy()
+    if onComplete then onComplete() end
+    display.remove(overlay)
+  end
+  transition.to(overlay, {strokeWidth = 0, time = time or 500, delay = delay or 0, transition = easing.inQuad, onCancel = destroy, onComplete=destroy})
+end
+
+
 -- Impact fx function
+
 function M.impact(object, intensity, time)
-  if not object.contentBounds then
+  if not (object and object.contentBounds) then
     print("WARNING: Object not found")
     return false
   end
@@ -127,19 +169,24 @@ function M.impact(object, intensity, time)
 end
 
 -- Bounce fx function
+
 function M.bounce(object, intensity, time)
-  if not object.contentBounds then
+  if not (object and object.contentBounds) then
     print("WARNING: Object not found")
     return false
   end
   object._y = object.y
   intensity = intensity or 0.05
   time = time or 500
-  local i = { y=object._y-(object.width * intensity), transition=easing.outBounce, time=time, iterations=-1 }
+
+  local function onCancel() object.y = object._y end
+
+  local i = { y=object._y-(object.width * intensity), transition=easing.outBounce, time=time, iterations=-1, onCancel = onCancel}
   transition.from(object, i)
 end
 
--- Bounce 3d fx function
+-- Bounce fx function
+
 function M.bounce3D(object, intensity, time)
   if not (object and object.contentBounds) then
     print("WARNING: Object not found")
@@ -163,6 +210,7 @@ function M.bounce3D(object, intensity, time)
 end
 
 -- Breath fx function
+
 function M.breath(object, intensity, time, rnd)
   if not (object and object.contentBounds) then
     print("WARNING: Object not found")
@@ -194,6 +242,7 @@ function M.breath(object, intensity, time, rnd)
 end
 
 -- Float fx function
+
 function M.float(object, intensity, time, rnd)
   if not (object and object.contentBounds) then
     print("WARNING: Object not found")
@@ -203,7 +252,7 @@ function M.float(object, intensity, time, rnd)
   intensity = intensity or 0.025
   time = time or 1000
   time = time + (rnd and math.random(rnd) or 0)
-  local x, y,i,e = object.x, object.y, {}, {}
+  local x,y,i,e = object.x, object.y, {}, {}
   local function inhale() transition.to(object, i) end
   local function exhale() transition.to(object, e) end
 
@@ -217,6 +266,7 @@ function M.float(object, intensity, time, rnd)
 end
 
 -- Sway
+
 function M.sway(object, intensity, time, rnd)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -234,14 +284,14 @@ function M.sway(object, intensity, time, rnd)
   local function exhale() transition.to(object.path, e) end
 
   -- set transitions
-  i = { time = time, x1 = x1 + intensity * size, x4 = x4 + intensity * size, transtion = easing.inOutExpo, onComplete = exhale }
-  e = { time = time, x1 = x1 - intensity * size, x4 = x4 - intensity * size, transtion = easing.inOutExpo, onComplete = inhale }
+  i = { time = time, x1 = x1 + intensity * size , x4 = x4 + intensity * size, transtion = easing.inOutExpo, onComplete = exhale }
+  e = { time = time, x1 = x1 - intensity * size , x4 = x4 - intensity * size, transtion = easing.inOutExpo, onComplete = inhale }
 
   inhale()
 end
 
-
 -- Shake object function
+
 function M.shake(object, frames, intensity)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -254,7 +304,7 @@ function M.shake(object, frames, intensity)
 
   local function shake()
     if (object._shakeFrames > 0) and  object.contentBounds then -- shake it
-      intensity = intensity or 128
+      intensity = intensity or 16
       if object._shakeFrames % 2 == 1 then
         object._iX = (math.random(intensity) - (intensity/2))*(object._shakeFrames/100)
         object._iY = (math.random(intensity) - (intensity/2))*(object._shakeFrames/100)
@@ -274,7 +324,8 @@ function M.shake(object, frames, intensity)
   Runtime:addEventListener("enterFrame", shake)
 end
 
--- object Trails
+-- Object Trails
+
 function M.newTrail(object, options)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -312,7 +363,7 @@ function M.newTrail(object, options)
   local function enterFrame()
     frame = frame + 1
     if offScreen(object) then return end   
-    
+
     -- object destroyed
     if not object.contentBounds then
       trail:finalize()
@@ -367,7 +418,6 @@ function M.newTrail(object, options)
   return trail
 end
 
--- Footprints
 function M.newFootprint(object, options)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -376,16 +426,17 @@ function M.newFootprint(object, options)
 
   options = options or {}
 
-  local image = options.image or "com/ponywolf/ponyfx/footprints.png"
+  local image = options.image or "gfx/footprints.png"
+  options.parent = options.parent or object.parent
 
-  local size = options.size or 48
+  local size = options.size or 14
   local w, h = size, size
 
-  local ox, oy = options.offsetX or 0, options.offsetY or 48
+  local ox, oy = options.offsetX or 0, options.offsetY or 0
   local trans = options.transition or { time = 250, alpha = 0, delay = 3000 }
   local delay = options.delay or 0
   local color = options.color or { 1.0 }
-  local alpha = options.alpha or 0.15
+  local alpha = options.alpha or 0.33
   local blendMode = options.blendMode
 
   local trail = display.newGroup()
@@ -401,7 +452,7 @@ function M.newFootprint(object, options)
 
   local function enterFrame()
     if offScreen(object) then return end   
-    
+
     -- object destroyed
     if not object.contentBounds then
       trail:finalize()
@@ -409,7 +460,7 @@ function M.newFootprint(object, options)
     end
 
     -- haven't moved
-    if lenSqr(object.x - trail.ox, object.y - trail.oy, (object.z or 0) - trail.oz) < 64 * 64 then return false end
+    if lenSqr(object.x - trail.ox, object.y - trail.oy, (object.z or 0) - trail.oz) < size * size * 1.5 then return false end
     local rotation = math.deg(math.atan2(object.y - trail.oy, object.x - trail.ox))
     trail.ox, trail.oy, trail.oz = object.x, object.y, (object.z or 0) 
 
@@ -452,11 +503,12 @@ function M.newFootprint(object, options)
 end
 
 -- lightning
+
 function M.newBolt(x1, y1, x2, y2, options)
   options = options or {}
   x1, y1 = x1 or 0, y1 or 0
   x2, y2 = x2 or 0, y2 or 0
-  local pixelsPerSeg = options.pixelsPerSeg or 32
+  local pixelsPerSeg = options.pixelsPerSeg or 8
   local dx, dy = x2 - x1, y2 - y1
   local dist = math.sqrt(dx*dx + dy*dy)
   local steps = math.round(dist/pixelsPerSeg)
@@ -469,28 +521,58 @@ function M.newBolt(x1, y1, x2, y2, options)
   local bolt = parent and display.newLine(parent,x1,y1,x1+dx+rx,y1+dy+ry) or display.newLine(x1,y1,x1+dx+rx,y1+dy+ry)
   for i = 1, steps do
     rx, ry = math.random(pixelsPerSeg) - pixelsPerSeg/2, math.random(pixelsPerSeg) - pixelsPerSeg / 2
-    --rx, ry = rx  *2, ry *2
+    rx, ry = math.floor(rx), math.floor(ry)
     bolt:append(x1 + dx*i + rx, y1 + dy*i + ry)
   end
   bolt:append(x2, y2)
-  bolt.strokeWidth = 8 + math.random(16)
+  bolt.strokeWidth = 2 --+ math.random(1)
   local paint = {
     type = "image",
     filename = "com/ponywolf/ponyfx/bolt.png"
   }
   bolt.stroke = paint
-  
+
   local remove = function() display.remove(bolt) end
   transition.to(bolt, {alpha = 0, time = 166, onComplete = remove} )
   return bolt
 end
 
+function M.newStrike(x, y, object, frames)
+  if not object.contentBounds then
+    print("WARNING: Object not found")
+    return false
+  end
+  local instance = display.newGroup()
+  local toX, toY = object:localToContent(0,0)
+
+  -- add frames to count
+  object._boltFrames = math.min(180, (frames or 30) + (object._shakeFrames or 0))
+
+  local function strike()
+    if object and (object._boltFrames > 0) and object.contentBounds then -- shake it
+      if object._boltFrames % 2 == 1 then
+        local bolt = M.newBolt(x, y, toX, toY)
+      end
+      object._boltFrames = object._boltFrames - 1
+    else
+      Runtime:removeEventListener("enterFrame", strike)
+      display.remove(instance)
+    end
+  end
+  -- get bolting
+  Runtime:addEventListener("enterFrame", strike)
+  return instance
+end
+
 -- Spinning streaks for menus and such
+
 function M.newStreak(options)
+
+  local streaks = display.newGroup()
 
   options = options or {}
 
-  local image = options.image or "com/ponywolf/ponyfx/streaksFade.png"
+  local image = options.image or "com/ponywolf/ponyfx/streaksPixel.png"
 
   local dw, dh = display.actualContentWidth, display.actualContentHeight
   local length = options.length or (dw > dh) and (dw * 0.666) or (dh * 0.666)
@@ -498,7 +580,6 @@ function M.newStreak(options)
   local speed = options.speed or 0.333
   local ratio = options.ratio or 2.666
   local color = options.color or { 1.0 }
-  local streaks = display.newGroup()
 
   for i=1, math.floor(360 / count) do
     local streak = display.newImageRect(image, length, length / count * ratio)
@@ -529,5 +610,34 @@ function M.newStreak(options)
   streaks:start()
   return streaks
 end
+
+function M.extrudedTileset(w,h,cols,rows,margin,spacing)
+  if not w or not h then
+    print("WARNING: Need tile w,h plus rows and columns")
+  end
+
+  margin, spacing = margin or 0, spacing or 0
+
+  local options = {
+    frames = {},
+  }
+
+  local frames = options.frames
+
+  for j=1, cols do
+    for i=1, rows do
+      local element = {
+        x = (i-1)*(w + spacing) + margin,
+        y = (j-1)*(h + spacing) + margin,
+        width = w,
+        height = h,
+      }
+      frames[#frames+1] = element
+    end
+  end
+
+  return options
+end
+
 
 return M

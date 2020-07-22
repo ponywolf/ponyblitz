@@ -18,20 +18,23 @@ function M.new(instance)
 
   if not instance.slider then error("ERROR: Expected display object for slider") end
 
-  if instance.slider then -- are we an image
-    local map = instance.parent
-    horizontal = instance.slider.width > instance.slider.height
-    if horizontal then
-      min = map:contentToLocal(instance.slider.contentBounds.xMin)
-      max = map:contentToLocal(instance.slider.contentBounds.xMax)
-    else
-      local _
-      _,min = map:contentToLocal(0,instance.slider.contentBounds.yMin)
-      _,max = map:contentToLocal(0,instance.slider.contentBounds.yMax)
+  function instance.reset()
+    if instance.slider then -- are we an image
+      local map = instance.parent
+      horizontal = instance.slider.width > instance.slider.height
+      if horizontal then
+        min = map:contentToLocal(instance.slider.contentBounds.xMin)
+        max = map:contentToLocal(instance.slider.contentBounds.xMax)
+      else
+        local _
+        _,min = map:contentToLocal(0,instance.slider.contentBounds.yMin)
+        _,max = map:contentToLocal(0,instance.slider.contentBounds.yMax)
+      end
     end
   end
 
-  function instance:set( value )
+  function instance:set(value)
+    instance.reset()
     value = value or 0.0
     value = math.min(1,math.max(0,value))
     if horizontal then 
@@ -42,7 +45,8 @@ function M.new(instance)
     return true
   end
 
-  function instance:get( value )
+  function instance:get(value)
+    instance.reset()
     if horizontal then 
       value = (self.x - min) / (max - min)
     else
@@ -52,10 +56,11 @@ function M.new(instance)
     return value
   end
 
-  function instance:touch( event )
+  function instance:touch(event)
     local value = self:get()
     if event.phase == "began" then
-      display.getCurrentStage():setFocus( self, event.id )
+      instance.reset()
+      display.getCurrentStage():setFocus(self, event.id)
       self.isFocus = true
       self.markX = self.x
       self.markY = self.y
@@ -70,12 +75,12 @@ function M.new(instance)
           self.y = event.y - event.yStart + self.markY
           self.y = math.min(math.max(self.y, min), max)
         end
-        local uiEvent = {name = "ui", phase = "slid", value = value,  target = self, tag = self.tag, buttonName = self.name or "none"}
+        local uiEvent = {name = "ui", phase = "slid", value = value, target = self, tag = self.tag, buttonName = self.name or "none"}
         Runtime:dispatchEvent(uiEvent)
       elseif event.phase == "ended" or event.phase == "cancelled" then
         local uiEvent = {name = "ui", phase = "released", value = value, target = self, tag = self.tag, buttonName = self.name or "none"}
         Runtime:dispatchEvent(uiEvent)
-        display.getCurrentStage():setFocus( self, nil )
+        display.getCurrentStage():setFocus(self, nil)
         self.isFocus = false
       end
     end

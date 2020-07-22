@@ -30,7 +30,7 @@ map["axis4-"] = "w"
 map["axis4+"] = "s"
 
 -- capture the axis event
-local function axis( event )
+local function axis(event)
   local num = event.axis.number or 1
   local name = "axis" .. num
   local value = event.normalizedValue
@@ -83,7 +83,7 @@ local function axis( event )
 end
 
 function M.start()
-  Runtime:addEventListener( "axis", axis )
+  Runtime:addEventListener("axis", axis)
 end
 
 return M

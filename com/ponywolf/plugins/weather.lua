@@ -38,8 +38,8 @@ function M.new(instance)
 		Runtime:removeEventListener("enterFrame", enterFrame)
 	end
 
-	instance:addEventListener( "finalize" )
-	Runtime:addEventListener( "enterFrame", enterFrame )
+	instance:addEventListener("finalize")
+	Runtime:addEventListener("enterFrame", enterFrame)
 
 	return instance
 end

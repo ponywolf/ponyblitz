@@ -1,7 +1,7 @@
 -- smart label
 
 local M = {}
-local renderSteps = 1
+local renderSteps = 0.5
 
 local function decodeTiledColor(hex)
   hex = hex or "#FF888888"
@@ -11,12 +11,27 @@ local function decodeTiledColor(hex)
     part = part == "" and "00" or part
     return tonumber("0x".. (part or "00")) / 255
   end
-  local a, r, g, b =  hexToFloat(hex:sub(1,2)), hexToFloat(hex:sub(3,4)), hexToFloat(hex:sub(5,6)) , hexToFloat(hex:sub(7,8)) 
-  return r,g,b,a
+  local a, r, g, b =  hexToFloat(hex:sub(1,2)), hexToFloat(hex:sub(3,4)), hexToFloat(hex:sub(5,6)), hexToFloat(hex:sub(7,8)) 
+  return r, g, b, a
+end
+
+local function decodeStrokeColor(hex)
+  hex = hex or "#FF888888"
+  hex = hex:gsub("#","")
+  local function hexToFloat(part)
+    part = part or "00"
+    part = part == "" and "00" or part
+    return tonumber("0x".. (part or "00")) / 255
+  end
+  local a, r, g, b =  hexToFloat(hex:sub(1,2)), hexToFloat(hex:sub(3,4)), hexToFloat(hex:sub(5,6)), hexToFloat(hex:sub(7,8)) 
+  local color = {
+    highlight = { r=r, g=g, b=b },
+    shadow =  { r=r, g=g, b=b },
+  }
+  return color
 end
 
 local function strokedText(options)
-
   -- default options for instance
   options = options or {}
   local x = options.x or 0
@@ -26,16 +41,15 @@ local function strokedText(options)
   options.height = nil
   options.x = 0
   options.y = 0
-  options.parent = nil
 
   -- new options 
-  local color = options.color or {1,1,1,1}
-  local strokeColor = options.strokeColor or {0,0,0,0.75}
-  local strokeWidth = options.strokeWidth or 1
+  local color = options.color or "#FFFFFFFF"
+  local strokeColor = options.strokeColor or "#FF888888"
+  local strokeWidth = options.strokeWidth or 0.5
 
   -- create the main text
   local text = display.newText(options)
-  text:setFillColor(unpack(color))
+  text:setFillColor(decodeTiledColor(color))
 
   --  create group to hold text/strokes
   local stroked = display.newGroup()
@@ -50,7 +64,7 @@ local function strokedText(options)
       if not (i == 0 and j == 0) then --skip middle
         options.x,options.y = i,j
         local stroke = display.newText(options)
-        stroke:setFillColor(decodeTiledColor(strokeColor))
+        stroke:setTextColor(decodeTiledColor(strokeColor))
         stroked:insert(stroke)
       end
     end
@@ -68,7 +82,7 @@ local function strokedText(options)
     stroked.unstroked:setFillColor(...)
   end
 
-  stroked:translate(x,y)
+  stroked:translate(x, y)
   text:toFront()
   return stroked
 end
@@ -85,21 +99,23 @@ function M.new(instance)
   local font = tiledObj.font or native.systemFont
   local size = tiledObj.size or 20
   local stroked = tiledObj.stroked
-  local strokeColor = tiledObj.labelStrokeColor or "000000CC"
+  local strokeColor = tiledObj.strokeColor or "FF000000"
   local align = tiledObj.align or "center"
   local color = tiledObj.color or "FFFFFFFF"
   local params = { parent = tiledObj.parent,
-    x = tiledObj.x, y = tiledObj.y, strokeColor = strokeColor,
-    text = text, font = font, fontSize = size, strokeWidth = tiledObj.labelStrokeWidth,
+    x = tiledObj.x, y = tiledObj.y, strokeColor = strokeColor, color = color,
+    text = text, font = font, fontSize = size, strokeWidth = tiledObj.labelStrokeWidth or 1,
     align = align, width = tiledObj.width } 
 
   if stroked then
     instance = strokedText(params)
+    instance:update(text) 
   else
     instance = display.newText(params)
     function instance:update(text) instance.text = text end
+    instance:setTextColor(decodeTiledColor(color))
   end
-  instance:setTextColor(decodeTiledColor(color))
+  
 
 -- push the rest of the properties
   instance.rotation = tiledObj.rotation 
@@ -110,7 +126,7 @@ function M.new(instance)
   if not tiledObj.keepInstance then
     display.remove(tiledObj)
   end
-  
+
   return instance
 end
 

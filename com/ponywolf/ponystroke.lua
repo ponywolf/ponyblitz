@@ -65,8 +65,8 @@ function M.newText(options)
     stroked.group:insert(text)  
   else
     stroked:insert(text) 
-    function stroked:setFillColor(r,g,b,a)
-      stroked.unstroked:setTextColor(r,g,b,a)
+    function stroked:setFillColor(r, g, b, a)
+      stroked.unstroked:setTextColor(r, g, b, a)
     end
   end
 
@@ -81,12 +81,12 @@ function M.newText(options)
   end
 
   -- call this function to set text color
-  function stroked:setTextColor(r,g,b,a)
-    stroked.unstroked:setTextColor(r,g,b,a)
+  function stroked:setTextColor(r, g, b, a)
+    stroked.unstroked:setTextColor(r, g, b, a)
     --if self.invalidate then self:invalidate() end
   end
 
-  stroked:translate(x,y) 
+  stroked:translate(x, y) 
   options.x = x
   options.y = y 
   stroked.text = options.text

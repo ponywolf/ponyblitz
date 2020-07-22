@@ -18,12 +18,12 @@ function M.new(instance, slideX, slideY)
     dx, dy = 0, 0
   end
 
-  function instance:touch( event )
+  function instance:touch(event)
     if event.phase == "follow" then
       self.isFocus = true
     end
     if event.phase == "began" then
-      display.getCurrentStage():setFocus( self, event.id )
+      display.getCurrentStage():setFocus(self, event.id)
       transition.cancel(self)
       self.isFocus = true
       self:set()
@@ -39,7 +39,7 @@ function M.new(instance, slideX, slideY)
         local durration = 166 + (16 * math.sqrt(dx*dx + dy*dy))
         if self.boundsCheck then self:boundsCheck() end
         transition.from(self, { x = lastx, y = lasty, time = durration, transition = easing.outExpo })
-        display.getCurrentStage():setFocus( self, nil )
+        display.getCurrentStage():setFocus(self, nil)
         self.isFocus = false
       end
     end
