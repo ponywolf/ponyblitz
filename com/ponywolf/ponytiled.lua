@@ -3,7 +3,7 @@
 -- Loads LUA saved map files from Tiled http://www.mapeditor.org/
 
 local physics = require "physics"
-local path = require "com.luapower.path" --optional to resolve relative paths on android
+--local path = require "com.luapower.path" --optional to resolve relative paths on android
 --local translate = require "com.ponywolf.translator"
 local xml = require("com.coronalabs.xml").newParser()
 local json = require "json"
