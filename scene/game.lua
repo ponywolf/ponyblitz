@@ -1,5 +1,6 @@
 -- Scenes: scene template
 
+local app = require "app"
 local scenes = require "scenes"
 local scene = {}
 
