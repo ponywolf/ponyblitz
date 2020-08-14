@@ -12,7 +12,6 @@ scene.name = "game"
 local world, hud, map
 
 -- requirements
-local composer = require "composer"
 local libworld = require "scene.game.lib.pixelWorld"
 local ponytiled = require "com.ponywolf.ponytiled"
 local fx = require "com.ponywolf.ponyfx"
@@ -32,10 +31,10 @@ function scene:create(event)
   world:reset()
   view:insert(world)
 
-
+  -- start physics before loading map
 	physics.start()
 
-  -- Load a tiled map
+  -- load a tiled map
   local filename = system.pathForFile("scene/game/map/test.json")
   local data = json.decodeFile(filename)
   map = ponytiled.new(data, "scene/game/map")

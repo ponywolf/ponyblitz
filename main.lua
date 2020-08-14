@@ -56,8 +56,7 @@ if device.isSimulator then
       elseif name == "f12" then
         device.screenshot()
       elseif name == "escape" then
-        composer.gotoScene( "scene.menu", { params={ } } )
-        composer.removeHidden()
+        -- quick exit
       end
     end
   end
