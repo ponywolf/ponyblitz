@@ -14,6 +14,7 @@ stage:insert(M.stage)
 
 -- scene has an always on top overlay group
 M.overlay = display.newGroup()
+M.overlay._isRenderer = true
 stage:insert(M.overlay)
 
 -- modal screen dim
@@ -72,6 +73,50 @@ local function fadeIn(onComplete, time, delay)
   return instance
 end
 
+local function irisOut(onComplete, time, delay)
+  local color = { 0, 0, 0, 1 }
+  local x,y = display.contentCenterX, display.contentCenterY
+  local wide = display.actualContentHeight > display.actualContentWidth and display.actualContentHeight or display.actualContentWidth
+  local r = 128
+  local scale = wide/r + 0.15
+  local instance = display.newCircle(x,y,r)
+  instance:setStrokeColor(unpack(color))
+  instance:setFillColor(0,0,0,0)
+  instance.strokeWidth = 0
+  instance.xScale, instance.yScale = scale, scale
+  instance:setFillColor(0,0,0,0)
+
+  instance.alpha = 1
+  local function destroy()
+    if onComplete then onComplete() end
+    display.remove(instance)
+  end
+  transition.to(instance, {strokeWidth = 255, time = time or 500, delay = delay or 0, transition = easing.outQuad, onCancel = destroy, onComplete=destroy})
+  return instance
+end
+
+local function irisIn(onComplete, time, delay)
+  local color = { 0, 0, 0, 1 }
+  local x,y = display.contentCenterX, display.contentCenterY
+  local wide = display.actualContentHeight > display.actualContentWidth and display.actualContentHeight or display.actualContentWidth
+  local r = 128
+  local scale = wide/r + 0.15
+  local instance = display.newCircle(x,y,r)
+  instance:setStrokeColor(unpack(color))
+  instance:setFillColor(0,0,0,0)
+  instance.strokeWidth = 255
+  instance.xScale, instance.yScale = scale, scale
+
+  instance.alpha = 1
+  local function destroy()
+    if onComplete then onComplete() end
+    display.remove(instance)
+  end
+  transition.to(instance, {strokeWidth = 0, time = time or 500, delay = delay or 0, transition = easing.inQuad, onCancel = destroy, onComplete=destroy})
+  return instance
+end
+
+
 function M.list()
   for k,_ in pairs(list) do
     print ("Scene:",k)
@@ -128,14 +173,14 @@ function M.new(template, options)
   end
 
   -- send finalize event
-  local function finalize(event)
+  function scene.view:finalize(event)
     Runtime:removeEventListener("resize", resize)
     Runtime:removeEventListener("enterFrame", enterFrame)
     if scene.finalize then
       scene:finalize(event)
     end
   end
-  Runtime:addEventListener("finalize", finalize)
+  scene.view:addEventListener("finalize")
 
   -- send create event
   if scene.create then
@@ -173,6 +218,15 @@ function M.show(name, options)
     end
     M.overlay:insert(fadeIn(ended, options.time, options.delay))
     M.overlay:toFront()
+  elseif options.transition == "iris" then
+    if scene.show then scene:show({phase = "began", options = options}) end
+    scene.view.isVisible = true
+    local function ended()
+      if scene.show then scene:show({phase = "ended", options = options}) end
+      if onComplete then onComplete() end
+    end
+    M.overlay:insert(irisIn(ended, options.time, options.delay))
+    M.overlay:toFront()
   else -- no transition
     if scene.show then scene:show({phase = "began", options = options}) end
     scene.view.isVisible = true
@@ -201,6 +255,15 @@ function M.hide(name, options)
       if onComplete then onComplete() end
     end
     M.overlay:insert(fadeOut(ended, options.time, options.delay))
+    M.overlay:toFront()
+  elseif options.transition == "iris" then
+    if scene.hide then scene:hide({phase = "began", options = options}) end
+    local function ended()
+      scene.view.isVisible = false
+      if scene.hide then scene:hide({phase = "ended", options = options}) end
+      if onComplete then onComplete() end
+    end
+    M.overlay:insert(irisOut(ended, options.time, options.delay))
     M.overlay:toFront()
   else -- no transition
     if scene.hide then scene:hide({phase = "began", options = options}) end
@@ -236,6 +299,16 @@ function M.remove(name, options)
   if options.collectgarbage then
     collectgarbage()
   end
+end
+
+function M.reboot(name, options)
+  local scene = list[name]
+  -- does the scene exist?
+  if not scene then
+    print ("ERROR: Scene does not exist", name)
+    return false
+  end
+
 end
 
 return M

@@ -2,8 +2,8 @@
 
 -- Re-broadcast joystick axis events as arrow keys
 
--- this module turns gamepad axis events into keyboard 
--- events so we don't have to write separate code 
+-- this module turns gamepad axis events into keyboard
+-- events so we don't have to write separate code
 -- for joystick and keyboard control
 
 -- just add this line to your main.lua
@@ -44,7 +44,7 @@ local function axis(event)
     oppositeAxis = map[name .. "-"]
   elseif value < 0 then
     event.keyName = map[name .. "-"]
-    oppositeAxis = map[name .. "+"]     
+    oppositeAxis = map[name .. "+"]
   else
     -- we had an exact 0 so throw both key up events for this axis
     event.keyName = map[name .. "-"]
@@ -54,30 +54,32 @@ local function axis(event)
   if math.abs(value) > deadZone then
     -- throw the opposite axis if it was last pressed
     if eventCache[oppositeAxis] then
-      event.phase = "up"      
+      event.phase = "up"
       eventCache[oppositeAxis] = false
       event.keyName = oppositeAxis
       Runtime:dispatchEvent(event)
-    end 
+    end
     -- throw this axis if it wasn't last pressed
     if not eventCache[event.keyName] then
-      event.phase = "down"      
-      eventCache[event.keyName] = true
-      Runtime:dispatchEvent(event)
-    end    
+      if event.keyName then
+        event.phase = "down"
+        eventCache[event.keyName] = true
+        Runtime:dispatchEvent(event)
+      end
+    end
   else
     -- we're back toward center
     if eventCache[event.keyName] then
-      event.phase = "up"      
+      event.phase = "up"
       eventCache[event.keyName] = false
       Runtime:dispatchEvent(event)
     end
     if eventCache[oppositeAxis] then
-      event.phase = "up"      
+      event.phase = "up"
       eventCache[oppositeAxis] = false
       event.keyName = oppositeAxis
       Runtime:dispatchEvent(event)
-    end     
+    end
   end
   return true
 end
