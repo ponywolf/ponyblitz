@@ -28,7 +28,7 @@ local function dim(percent, modal)
   instance.alpha = percent or 0.5
   instance.isHitTestable = true
   if modal then
-    local function disable(event)
+    local function disable()
       return instance.parent and instance.parent.isVisible
     end
     instance:addEventListener("touch", disable)
@@ -116,17 +116,20 @@ local function irisIn(onComplete, time, delay)
   return instance
 end
 
-
 function M.list()
+  print("Scene list")
+  print("==========")
   for k,_ in pairs(list) do
     print ("Scene:",k)
   end
+  print("==========")
 end
 
 function M.new(template, options)
   local scene = require(template)
   options = options or {}
   local name = options.name or scene.name or template
+  M.current = scene
 
   -- does the scene already exist?
   if list[name] then
@@ -182,15 +185,26 @@ function M.new(template, options)
   end
   scene.view:addEventListener("finalize")
 
+  -- add scene to list
+  scene.name = name
+  list[name] = scene
+  scene.template = template
+
   -- send create event
   if scene.create then
     scene:create({options = options})
   end
 
-  -- add scene to list
-  scene.name = name
-  list[name] = scene
+  return scene
+end
 
+function M.find(name)
+  M.list()
+  local scene = list[name]
+  if not scene then
+    print ("ERROR: Scene does not exist", name)
+    return false
+  end
   return scene
 end
 
@@ -198,6 +212,7 @@ function M.show(name, options)
   local scene = list[name]
   options = options or {}
   local onComplete = options.onComplete
+  M.current = scene
 
   -- does the scene exist?
   if not scene then
@@ -212,7 +227,9 @@ function M.show(name, options)
   if options.transition == "fade" then
     if scene.show then scene:show({phase = "began", options = options}) end
     scene.view.isVisible = true
+    scene.view:toFront()
     local function ended()
+      if scene.toBack then scene:toBack() end
       if scene.show then scene:show({phase = "ended", options = options}) end
       if onComplete then onComplete() end
     end
@@ -221,6 +238,7 @@ function M.show(name, options)
   elseif options.transition == "iris" then
     if scene.show then scene:show({phase = "began", options = options}) end
     scene.view.isVisible = true
+    scene.view:toFront()
     local function ended()
       if scene.show then scene:show({phase = "ended", options = options}) end
       if onComplete then onComplete() end
@@ -230,6 +248,7 @@ function M.show(name, options)
   else -- no transition
     if scene.show then scene:show({phase = "began", options = options}) end
     scene.view.isVisible = true
+    scene.view:toFront()
     if scene.show then scene:show({phase = "ended", options = options}) end
     if onComplete then onComplete() end
   end
@@ -240,6 +259,7 @@ function M.hide(name, options)
   local scene = list[name]
   options = options or {}
   local onComplete = options.onComplete
+  local recycle = options.recycle
 
   -- does the scene exist?
   if not scene then
@@ -250,28 +270,53 @@ function M.hide(name, options)
   if options.transition == "fade" then
     if scene.hide then scene:hide({phase = "began", options = options}) end
     local function ended()
-      scene.view.isVisible = false
+      if scene and scene.view then
+        scene.view:toBack()
+        scene.view.isVisible = false
+      end
       if scene.hide then scene:hide({phase = "ended", options = options}) end
       if onComplete then onComplete() end
+      if recycle then display.remove(scene) end
     end
-    M.overlay:insert(fadeOut(ended, options.time, options.delay))
+    M.overlay:insert(fadeOut(ended, options.time, options.delay, recycle))
     M.overlay:toFront()
   elseif options.transition == "iris" then
     if scene.hide then scene:hide({phase = "began", options = options}) end
     local function ended()
-      scene.view.isVisible = false
+      if scene and scene.view then
+        scene.view:toBack()
+        scene.view.isVisible = false
+      end
       if scene.hide then scene:hide({phase = "ended", options = options}) end
       if onComplete then onComplete() end
+      if recycle then display.remove(scene) end
     end
     M.overlay:insert(irisOut(ended, options.time, options.delay))
     M.overlay:toFront()
   else -- no transition
     if scene.hide then scene:hide({phase = "began", options = options}) end
+    scene.view:toBack()
     scene.view.isVisible = false
     if scene.hide then scene:hide({phase = "ended", options = options}) end
     if onComplete then onComplete() end
+    if recycle then display.remove(scene) end
   end
+end
 
+function M.switch(name, options)
+  local current = M.current and M.current.name
+  if current then
+    options = options or {}
+    local finalComplete = options.onComplete
+    options.onComplete = function ()
+      if options.recycle then M.remove(current) end
+      options.onComplete = finalComplete
+      M.show(name, options)
+    end
+    M.hide(current, options)
+  else
+    print ("ERROR: Current scene does not exist")
+  end
 end
 
 function M.remove(name, options)
@@ -285,14 +330,26 @@ function M.remove(name, options)
   end
   scene.view.isVisible = false
 
-  -- remove scene's view, should auto kick off finalize()
-  display.remove(scene.view)
-
   -- optional send a quick destroy before removing the scene
   if scene.destroy then
     scene:destroy()
   end
 
+  -- kill all transitions, remove scene's view, should auto kick off finalize()
+  local function cancelTransition(group)
+    if group.numChildren then
+      for i = group.numChildren, 1, -1 do
+        cancelTransition(group[i])
+      end
+    else
+      transition.cancel(group)
+    end
+  end
+  cancelTransition(scene.view)
+  display.remove(scene.view)
+
+  package.loaded[scene.template] = nil
+  scene.view = nil
   scene = nil
   list[name] = nil
 
@@ -301,14 +358,37 @@ function M.remove(name, options)
   end
 end
 
+function M.reload(name)
+  local current = M.find(name)
+  local template = current.template
+  print(current, template)
+  if name and template then
+    M.remove(name)
+    M.new(template)
+  else
+    print ("ERROR: Unable to reload", name)
+  end
+end
+
 function M.reboot(name, options)
   local scene = list[name]
+  options = options or {}
   -- does the scene exist?
   if not scene then
     print ("ERROR: Scene does not exist", name)
     return false
   end
 
+  local template = M.find(name) and M.find(name).template
+
+  if name and template then
+    local function reload()
+      M.remove(name, { collectgarbage = true })
+      M.new(template)
+      M.show(name, {transition = options.transition, time = options.time })
+    end
+    M.hide(name, {transition = options.transition, time = options.time, onComplete = reload })
+  end
 end
 
 return M
