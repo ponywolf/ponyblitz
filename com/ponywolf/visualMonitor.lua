@@ -16,7 +16,7 @@
 local M = {}
 local int, min, fps = math.floor, math.min, display.fps
 
-M.fontSize = 16
+M.fontSize = 24
 M.updateFreq = int(fps / 10) -- ten updates per second
 M.updateCount = 0
 local prevTime = 0
@@ -39,17 +39,18 @@ end
 local function addDisplay()
   local group = display.newGroup()
 
-  local background = display.newRect(display.contentCenterX,display.screenOriginY,display.actualContentWidth, M.fontSize*1.75);
+  local text = display.newText("",0,0, "font/Kenney Pixel.ttf", M.fontSize);
+  text:setFillColor(1)
+  text.anchorY = 0
+  text.x, text.y = display.contentCenterX, display.safeScreenOriginY+2
+
+  local background = display.newRect(display.contentCenterX,display.safeScreenOriginY, display.actualContentWidth, 2 * text.height + 2);
   background.anchorY = 0
   background:setFillColor(0)
-  background.alpha = 0.65
-
-  local text = display.newText("",0,0, native.systemFont, M.fontSize);
-  text:setFillColor(1)
-  text.x, text.y = display.contentCenterX, display.screenOriginY+(M.fontSize) - (M.fontSize * 0.15)
+  background.alpha = 0.5
 
   group:insert(background)
-  group:insert(text)  
+  group:insert(text)
   group.text = text
   return group
 end
@@ -58,12 +59,12 @@ local function update(event)
   local curTime = system.getTimer()
   if M.updateCount > M.updateFreq then
     M.updateCount = 0
-    M.group.text.text = "FPS: ".. tostring(min(display.fps,int( 1000 / (curTime - prevTime)))) .. " " ..
+    M.group.text.text = "FPS: ".. tostring(min(display.fps,int(1000 / (curTime - prevTime)))) .. " " ..
     " Texture Memory: ".. tostring(int(system.getInfo("textureMemoryUsed") * 0.0001) * 0.01) .. "mb " ..
-    " System Memory: ".. tostring(int(collectgarbage("count") * 0.1) * 0.01) .. "mb " ..
+    " System Memory: ".. tostring(int(collectgarbage("count") * 0.1) * 0.01) .. "mb \n" ..
     " Stage Objects: " .. tostring(int(deepNumChildren(display.getCurrentStage()))) ..
     " enterFrame Listeners: " .. tostring(int(#Runtime._functionListeners.enterFrame)) ..
-    " transitions: " .. tostring(int(#transition._transitionTable)) 
+    " transitions: " .. tostring(int(#transition._transitionTable))
   end
   M.group:toFront()
   M.updateCount = M.updateCount + 1

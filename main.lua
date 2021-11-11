@@ -51,7 +51,7 @@ if device.isSimulator then
         else
           physics.setDrawMode( "normal" )
         end
-      elseif name == "f11" then
+      elseif name == "`" then
         visMon.isVisible = not visMon.isVisible
       elseif name == "f12" then
         device.screenshot()

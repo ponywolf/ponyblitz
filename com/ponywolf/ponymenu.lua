@@ -5,6 +5,14 @@
 
 local M = {}
 
+local app = require "app"
+
+local outline = {
+  highlight = { r=0, g=0, b=0, a = 1 },
+  shadow = { r=0, g=0, b=0, a = 1 }
+}
+
+
 local function split(line, separator)
   line = line or ""
   separator = separator or ","  
@@ -60,10 +68,11 @@ function M.new(listener, options)
 
     for i = 1, #items do
       default.text = items[i].text
-      items[i].object = display.newText(default)
+      items[i].object = display.newEmbossedText(default)
       items[i].object:translate(0, (i > 1) and items[i-1].object.contentHeight * (i-1) or 0)
       instance:insert(items[i].object)
       items[i].object:setTextColor(unpack(options.color or {1,1,1,1}))
+      items[i].object:setEmbossColor(outline)
     end
     self:update(1)
   end
@@ -74,7 +83,7 @@ function M.new(listener, options)
     index = math.min(math.max(index,1),#items)
 
     -- change these to hightlight your menu
-    local selected = { time = 0, xScale = 1.075, yScale = 1.075, alpha = 1 }
+    local selected = { time = 0, xScale = 1.0, yScale = 1.0, alpha = 1 }
     local normal = { time = 0, xScale = 1, yScale = 1, alpha = 0.7 }
 
     for i = 1, #items do
@@ -164,13 +173,14 @@ function M.new(listener, options)
 
   local function key(event)
     local phase = event.phase
-    local name = event.keyName    
+    local name = event.keyName   
+    if not app.isMenu then return false end    
     if phase == "up" then
       if name == "up" then
         instance:up()
       elseif name == "down" then
         instance:down()      
-      elseif name == "enter" or name == "space" then
+      elseif name == "enter" or name == "space" or name == "buttonA" then
         local item = instance:choose() 
         if listener then
           listener( { phase = "selected", name = item } )

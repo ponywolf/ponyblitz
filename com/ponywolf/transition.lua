@@ -1,13 +1,4 @@
-transition.__cancel = transition.cancel
-
-function transition.cancel(param)
-  if param == nil then
-    print("WARNING: Transition cancelling all transitions")
-    transition.__cancel()
-  else
-    transition.__cancel(param)
-  end
-end
+transition.ignoreEmptyReference = true
 
 function transition.isTransitioning(whatToTest)
 

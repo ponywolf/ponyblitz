@@ -15,6 +15,37 @@ local function offScreen(object)
   return false
 end
 
+function M.flashHurt(object, frames, listener)
+  if not object.contentBounds then
+    print("WARNING: Object not found")
+    return false
+  end
+
+  local function flash()
+    object.fill.effect = "filter.invert"
+  end
+
+  local function revert()
+    object.fill.effect = nil
+  end
+
+  object._flashFrames = math.min(180, (frames or 30) + (object._flashFrames or 0))
+  local function cycle()
+    if (object._flashFrames > 0) and object.contentBounds then -- flash it
+      if object._flashFrames % 4 == 1 or object._flashFrames % 4 == 2 then
+        revert()
+      else
+        flash()
+      end
+      object._flashFrames = object._flashFrames - 1
+    else
+      Runtime:removeEventListener("enterFrame", cycle)
+      if listener then listener() end
+    end
+  end
+  Runtime:addEventListener("enterFrame", cycle)
+end
+
 function M.flash(object, frames, listener)
   if not object.contentBounds then
     print("WARNING: Object not found")
@@ -361,8 +392,10 @@ function M.newTrail(object, options)
   trail.alpha = alpha
 
   local function enterFrame()
-    frame = frame + 1
-    if offScreen(object) then return end   
+
+    -- not visible or off screem
+    if not object.isVisible then return false end
+    if offScreen(object) then return end
 
     -- object destroyed
     if not object.contentBounds then
@@ -525,12 +558,12 @@ function M.newBolt(x1, y1, x2, y2, options)
     bolt:append(x1 + dx*i + rx, y1 + dy*i + ry)
   end
   bolt:append(x2, y2)
-  bolt.strokeWidth = 2 --+ math.random(1)
-  local paint = {
-    type = "image",
-    filename = "com/ponywolf/ponyfx/bolt.png"
-  }
-  bolt.stroke = paint
+  bolt.strokeWidth = 1 --+ math.random(1)
+--  local paint = {
+--    type = "image",
+--    filename = "com/ponywolf/ponyfx/bolt.png"
+--  }
+--  bolt.stroke = paint
 
   local remove = function() display.remove(bolt) end
   transition.to(bolt, {alpha = 0, time = 166, onComplete = remove} )
