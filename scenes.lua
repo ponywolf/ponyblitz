@@ -27,6 +27,7 @@ local function dim(percent, modal)
     display.actualContentHeight * 2)
   instance:setFillColor(0,0,0,1)
   instance.alpha = percent or 0.5
+  instance.percent = percent or 0.5
   instance.isHitTestable = true
   if modal then
     local function disable(event)
