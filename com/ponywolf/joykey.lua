@@ -29,6 +29,9 @@ map["axis3+"] = "d"
 map["axis4-"] = "w"
 map["axis4+"] = "s"
 
+map["axis5+"] = "leftTrigger"
+map["axis6+"] = "rightTrigger"
+
 -- capture the axis event
 local function axis(event)
   local num = event.axis.number or 1
